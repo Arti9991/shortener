@@ -7,9 +7,10 @@ import (
 )
 
 func main() {
+	data := handlers.NewData()
 	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, handlers.MainPage)
-	mux.HandleFunc(`/api/`, handlers.ApiPage)
+	mux.HandleFunc(`/`, handlers.MainPage(&data))
+	mux.HandleFunc(`/{id}`, handlers.GetAddr(&data))
 
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
