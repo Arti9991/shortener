@@ -172,6 +172,9 @@ func TestAllHandle(t *testing.T) {
 				assert.Equal(t, test.want.statusCode2, result2.StatusCode)
 				assert.Equal(t, test.want.contentType2, result2.Header.Get("Content-Type"))
 				assert.Equal(t, test.want.location, result2.Header.Get("Location"))
+
+				err = result2.Body.Close()
+				require.NoError(t, err)
 			} else if result.StatusCode == http.StatusBadRequest {
 				assert.Equal(t, test.want.statusCode1, result.StatusCode)
 			}
@@ -296,6 +299,10 @@ func TestMultuplTasks(t *testing.T) {
 				assert.Equal(t, test.want.statusCode2, result2.StatusCode)
 				assert.Equal(t, test.want.contentType2, result2.Header.Get("Content-Type"))
 				assert.Equal(t, loc, result2.Header.Get("Location"))
+
+				err := result2.Body.Close()
+				require.NoError(t, err)
+
 				fmt.Printf("\n\n\nIter: %d Result: %s\n\n\n", i, result2.Header.Get("Location"))
 			}
 		})
