@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+	"path"
 	"time"
 
 	"github.com/Arti9991/shortener/internal/app/storage"
@@ -57,9 +57,10 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 			http.Error(res, "Only Get requests are allowed!", http.StatusBadRequest)
 			return
 		}
-		ident := req.URL.String()
-		ident = strings.ReplaceAll(ident, "/", "")
-		fmt.Printf("Id: %#v\t", ident)
+		fmt.Printf("Map: %#v\n", dt.ShortUrls)
+
+		ident := path.Base(req.URL.String())
+		fmt.Printf("Id1: %#v\n", ident)
 
 		redir := dt.GetURL(ident)
 
@@ -72,14 +73,14 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)
-		body := "Data in =======================\n\r"
-		body += fmt.Sprintf("Id: %#v\t", ident)
-		body += fmt.Sprintf("Redir: %#v\n", redir)
-		body += "Header responce:\n"
-		for k, v := range res.Header() {
-			body += fmt.Sprintf("%s: %v\r\n", k, v)
-		}
-		res.Write([]byte(body))
+		// body := "Data in =======================\n\r"
+		// body += fmt.Sprintf("Id: %#v\t", ident)
+		// body += fmt.Sprintf("Redir: %#v\n", redir)
+		// body += "Header responce:\n"
+		// for k, v := range res.Header() {
+		// 	body += fmt.Sprintf("%s: %v\r\n", k, v)
+		// }
+		// res.Write([]byte(body))
 
 	}
 }
