@@ -127,6 +127,7 @@ func TestRouter(t *testing.T) {
 		ident := make([]string, 0)
 		for i := range len(test.bodys) {
 			resp, get, reqURL := testRequests(t, ts, "POST", test.request, strings.NewReader(test.bodys[i]))
+			defer resp.Body.Close()
 			assert.Equal(t, test.want.statusCode1, resp.StatusCode)
 			assert.Equal(t, test.want.contentType1, resp.Header.Get("Content-Type"))
 			bl := strings.Contains(get, reqURL)
@@ -141,6 +142,7 @@ func TestRouter(t *testing.T) {
 			fmt.Println(ident)
 
 			resp2, _, _ := testRequests(t, ts, "GET", ident[i], nil)
+			defer resp2.Body.Close()
 			// fmt.Printf("\n")
 			// fmt.Println(OutUrl)
 			// fmt.Println(reqURL)
