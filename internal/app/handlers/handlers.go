@@ -34,12 +34,12 @@ func MainPage(dt *storage.Data) http.HandlerFunc {
 			http.Error(res, "The body is empty!", http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("\n\n\nBody: %s\t", string(body))
+		//fmt.Printf("\n\n\nBody: %s\t", string(body))
 
 		ansStr := randomString(8)
 
-		fmt.Printf("reqBody: %s\n\n\n", ansStr)
-		fmt.Printf("reqURL + Body: %#v + %s\n\n\n", req.Host, ansStr)
+		//fmt.Printf("reqBody: %s\n\n\n", ansStr)
+		//fmt.Printf("reqURL + Body: %#v + %s\n\n\n", req.Host, ansStr)
 
 		dt.AddValue(string(body), ansStr)
 
@@ -57,7 +57,7 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 			http.Error(res, "Only Get requests are allowed!", http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("Map: %#v\n", dt.ShortUrls)
+		//fmt.Printf("Map: %#v\n", dt.ShortUrls)
 
 		ident := path.Base(req.URL.String())
 		fmt.Printf("Id1: %#v\n", ident)
@@ -73,6 +73,7 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)
+
 		// body := "Data in =======================\n\r"
 		// body += fmt.Sprintf("Id: %#v\t", ident)
 		// body += fmt.Sprintf("Redir: %#v\n", redir)

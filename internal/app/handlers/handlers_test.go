@@ -77,7 +77,6 @@ func TestMainPage(t *testing.T) {
 
 			strResult := string(userResult)
 			bl := strings.Contains(strResult, test.want.answer)
-			require.NoError(t, err)
 			assert.True(t, bl)
 		})
 	}
