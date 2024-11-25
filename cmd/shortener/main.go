@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Arti9991/shortener/internal/app/handlers"
-	"github.com/Arti9991/shortener/internal/app/storage"
+	"github.com/Arti9991/shortener/internal/storage"
 )
 
 func main() {

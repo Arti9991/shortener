@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Arti9991/shortener/internal/app/storage"
+	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

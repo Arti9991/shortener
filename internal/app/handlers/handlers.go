@@ -7,7 +7,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/Arti9991/shortener/internal/app/storage"
+	"github.com/Arti9991/shortener/internal/storage"
 	"golang.org/x/exp/rand"
 )
 
