@@ -34,7 +34,7 @@ func TestMainPage(t *testing.T) {
 			want: want{
 				statusCode:  201,
 				contentType: "text/plain",
-				answer:      "http://localhost:8080/",
+				answer:      "http://example.com/",
 			},
 		},
 		{
@@ -43,8 +43,8 @@ func TestMainPage(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode:  400,
-				contentType: "text/plain",
-				answer:      "http://localhost:8080/",
+				contentType: "text/plain; charset=utf-8",
+				answer:      "The body is empty!",
 			},
 		},
 		{
@@ -53,8 +53,8 @@ func TestMainPage(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode:  400,
-				contentType: "text/plain",
-				answer:      "http://localhost:8080/",
+				contentType: "text/plain; charset=utf-8",
+				answer:      "The body is empty!",
 			},
 		},
 	}
@@ -66,22 +66,19 @@ func TestMainPage(t *testing.T) {
 			h(w, request)
 
 			result := w.Result()
-			if result.StatusCode != http.StatusBadRequest {
-				assert.Equal(t, test.want.statusCode, result.StatusCode)
-				assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
+			//if result.StatusCode != http.StatusBadRequest {
+			assert.Equal(t, test.want.statusCode, result.StatusCode)
+			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
 
-				userResult, err := io.ReadAll(result.Body)
-				require.NoError(t, err)
-				err = result.Body.Close()
-				require.NoError(t, err)
+			userResult, err := io.ReadAll(result.Body)
+			require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
 
-				re := regexp.MustCompile(`http://example.com/\w+`)
-				strResult := string(userResult)
-				assert.True(t, re.MatchString(strResult))
-			} else if result.StatusCode == http.StatusBadRequest {
-				assert.Equal(t, test.want.statusCode, result.StatusCode)
-			}
-
+			strResult := string(userResult)
+			bl := strings.Contains(strResult, test.want.answer)
+			require.NoError(t, err)
+			assert.True(t, bl)
 		})
 	}
 }
