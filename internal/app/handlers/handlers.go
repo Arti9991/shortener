@@ -41,12 +41,10 @@ func MainPage(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 		if req.TLS != nil {
 			scheme = "https"
 		}
-		fullUrl := scheme + "://" + req.Host + req.URL.Path
-		//fmt.Printf("reqURL + Body: %#v + %s\n\n\n", FullUrl, ansStr)
 
 		dt.AddValue(string(body), ansStr)
 
-		ansStr = fullUrl + ansStr
+		ansStr = scheme + "://" + req.Host + req.URL.Path + ansStr
 
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
