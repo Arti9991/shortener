@@ -2,7 +2,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -133,6 +132,7 @@ func TestRouter(t *testing.T) {
 			assert.Equal(t, test.want.statusCode1, resp.StatusCode)
 			assert.Equal(t, test.want.contentType1, resp.Header.Get("Content-Type"))
 			bl := strings.Contains(get, reqURL)
+			//fmt.Println(get)
 			assert.True(t, bl)
 			// assert.Equal(t, v.status, resp.StatusCode)
 			// assert.Equal(t, v.want, get)
@@ -141,7 +141,7 @@ func TestRouter(t *testing.T) {
 			ident = append(ident, "/"+get)
 			// }
 			// for i := range len(test.want.locations) {
-			fmt.Println(ident)
+			//fmt.Println(ident)
 
 			resp2, _, _ := testRequests(t, ts, "GET", ident[i], nil)
 			defer resp2.Body.Close()

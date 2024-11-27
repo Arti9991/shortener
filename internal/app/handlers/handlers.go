@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -38,12 +37,16 @@ func MainPage(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 
 		ansStr := randomString(8)
 
-		//fmt.Printf("reqBody: %s\n\n\n", ansStr)
-		//fmt.Printf("reqURL + Body: %#v + %s\n\n\n", req.Host, ansStr)
+		scheme := "http"
+		if req.TLS != nil {
+			scheme = "https"
+		}
+		FullUrl := scheme + "://" + req.Host + req.URL.Path
+		//fmt.Printf("reqURL + Body: %#v + %s\n\n\n", FullUrl, ansStr)
 
 		dt.AddValue(string(body), ansStr)
 
-		ansStr = "http://" + BaseAdr + "/" + ansStr
+		ansStr = FullUrl + ansStr
 
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
@@ -60,11 +63,11 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 		//fmt.Printf("Map: %#v\n", dt.ShortUrls)
 
 		ident := path.Base(req.URL.String())
-		fmt.Printf("Id1: %#v\n", ident)
+		//fmt.Printf("Id1: %#v\n", ident)
 
 		redir := dt.GetURL(ident)
 
-		fmt.Printf("Redir: %#v\n", redir)
+		//fmt.Printf("Redir: %#v\n", redir)
 
 		if redir == "" {
 			http.Error(res, "There is no such identifier!", http.StatusBadRequest)
