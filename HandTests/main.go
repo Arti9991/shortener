@@ -27,7 +27,11 @@ func main() {
 	// заполняем контейнер данными
 	data.Set("url", long)
 	// добавляем HTTP-клиент
-	client := &http.Client{}
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	// пишем запрос
 	// запрос методом POST должен, помимо заголовков, содержать тело
 	// тело должно быть источником потокового чтения io.Reader
