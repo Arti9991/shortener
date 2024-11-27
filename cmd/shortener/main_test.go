@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Arti9991/shortener/internal/config"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,7 +39,8 @@ func testRequests(t *testing.T, ts *httptest.Server, method,
 
 func TestRouter(t *testing.T) {
 	data := storage.NewData()
-	ts := httptest.NewServer(MainRouter(data))
+	cfg := config.InitConf()
+	ts := httptest.NewServer(MainRouter(&data, cfg.BaseAdr))
 	defer ts.Close()
 
 	type want struct {

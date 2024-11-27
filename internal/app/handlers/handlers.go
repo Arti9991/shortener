@@ -23,7 +23,7 @@ func randomString(n int) string {
 	return string(bt)
 }
 
-func MainPage(dt *storage.Data) http.HandlerFunc {
+func MainPage(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			http.Error(res, "Only POST requests are allowed!", http.StatusBadRequest)
@@ -43,7 +43,7 @@ func MainPage(dt *storage.Data) http.HandlerFunc {
 
 		dt.AddValue(string(body), ansStr)
 
-		ansStr = "http://" + req.Host + "/" + ansStr
+		ansStr = "http://" + BaseAdr + "/" + ansStr
 
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
