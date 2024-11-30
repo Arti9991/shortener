@@ -12,7 +12,7 @@ func NewData() Data {
 	return Data{ShortUrls: dt}
 }
 
-func (d *Data) AddValue(value string, key string) {
+func (d *Data) AddValue(key string, value string) {
 	d.Lock()
 	defer d.Unlock()
 	_, ok := d.ShortUrls[key]

@@ -16,7 +16,7 @@ func InitConf() Config {
 	var conf Config
 
 	flag.StringVar(&conf.HostAdr, "a", "localhost:8080", "server host adress")
-	flag.StringVar(&conf.BaseAdr, "b", "localhost:8080", "base return adress")
+	flag.StringVar(&conf.BaseAdr, "b", "http://localhost:8080", "base return adress")
 	flag.Parse()
 
 	err := env.Parse(&conf)

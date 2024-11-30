@@ -162,7 +162,7 @@ func TestRouter(t *testing.T) {
 			//assert.True(t, bl)
 			// assert.Equal(t, v.status, resp.StatusCode)
 			// assert.Equal(t, v.want, get)
-			get, found := strings.CutPrefix(get, "localhost:8080")
+			get, found := strings.CutPrefix(get, "http://localhost:8080")
 			assert.True(t, found)
 			ident = append(ident, get)
 			// }

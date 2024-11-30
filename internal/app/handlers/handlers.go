@@ -35,16 +35,16 @@ func MainPage(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 		}
 		//fmt.Printf("\n\n\nBody: %s\t", string(body))
 
-		ansStr := randomString(8)
+		hashStr := randomString(8)
 
-		scheme := "http"
-		if req.TLS != nil {
-			scheme = "https"
-		}
+		// scheme := "http"
+		// if req.TLS != nil {
+		// 	scheme = "https"
+		// }
 
-		dt.AddValue(string(body), ansStr)
+		dt.AddValue(hashStr, string(body))
 
-		ansStr = scheme + "//:" + BaseAdr + req.URL.Path + ansStr
+		ansStr := BaseAdr + "/" + hashStr
 		//fmt.Printf("\n\n\nResult: %#v ;\n\n\n", ansStr)
 
 		res.Header().Set("content-type", "text/plain")

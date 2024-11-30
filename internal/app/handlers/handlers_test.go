@@ -62,7 +62,7 @@ func TestMainPage(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(test.body))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(MainPage(&dt, "http://example.com/"))
+			h := http.HandlerFunc(MainPage(&dt, "http://example.com"))
 			h(w, request)
 
 			result := w.Result()
@@ -78,6 +78,8 @@ func TestMainPage(t *testing.T) {
 			strResult := string(userResult)
 			bl := strings.Contains(strResult, test.want.answer)
 			assert.True(t, bl)
+			res, _ := strings.CutPrefix(strResult, "http://example.com/")
+			assert.Equal(t, test.body, dt.ShortUrls[res])
 		})
 	}
 }
@@ -132,7 +134,7 @@ func TestGet(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		dt.AddValue(test.want.answer, test.hash)
+		dt.AddValue(test.hash, test.want.answer)
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
 			w := httptest.NewRecorder()

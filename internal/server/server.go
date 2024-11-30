@@ -28,6 +28,9 @@ func (s *Server) MainRouter() chi.Router {
 
 	rt.Post("/", handlers.MainPage(s.Storage, s.Config.BaseAdr))
 	rt.Get("/{id}", handlers.GetAddr(s.Storage))
+	rt.HandleFunc("/foo/{baz}", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/bar/"+chi.URLParam(r, "baz"), http.StatusPermanentRedirect)
+	})
 
 	return rt
 }
