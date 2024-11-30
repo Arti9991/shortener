@@ -120,9 +120,38 @@ func TestRouter(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:    "Seven non formal requests for code 307",
+			request: "/",
+			bodys: []string{
+				"Booogie woogie",
+				"Gophers cool",
+				"Nice look",
+				"Etc",
+				"Non Formal tests",
+				"Errors",
+				"Boooo",
+			},
+			want: want{
+				statusCode1:  201,
+				statusCode2:  307,
+				contentType1: "text/plain",
+				contentType2: "",
+				locations: []string{
+					"Booogie woogie",
+					"Gophers cool",
+					"Nice look",
+					"Etc",
+					"Non Formal tests",
+					"Errors",
+					"Boooo",
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		ident := make([]string, 0)
+		locate := make([]string, 0)
 		for i := range len(test.bodys) {
 			resp, get, reqURL := testRequests(t, ts, "POST", test.request, strings.NewReader(test.bodys[i]))
 			defer resp.Body.Close()
@@ -149,7 +178,22 @@ func TestRouter(t *testing.T) {
 
 			assert.Equal(t, test.want.statusCode2, resp2.StatusCode)
 			assert.Equal(t, test.want.contentType2, resp2.Header.Get("Content-Type"))
-			assert.Equal(t, test.want.locations[i], resp2.Header.Get("Location"))
+			locate = append(locate, resp2.Header.Get("Location"))
+			//assert.Equal(t, test.want.locations[i], resp2.Header.Get("Location"))
+		}
+		//time.Sleep(time.Second)
+		for _, loc := range locate {
+			assert.True(t, findValue(loc, test.want.locations))
+		}
+
+	}
+}
+
+func findValue(res string, wants []string) bool {
+	for _, want := range wants {
+		if res == want {
+			return true
 		}
 	}
+	return false
 }

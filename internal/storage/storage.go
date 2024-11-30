@@ -12,7 +12,7 @@ func NewData() Data {
 	return Data{ShortUrls: dt}
 }
 
-func (d *Data) AddValue(key string, value string) {
+func (d *Data) AddValue(value string, key string) {
 	d.Lock()
 	defer d.Unlock()
 	_, ok := d.ShortUrls[key]
@@ -21,14 +21,16 @@ func (d *Data) AddValue(key string, value string) {
 	}
 }
 
-func (d *Data) GetURL(val string) string {
+func (d *Data) GetURL(key string) string {
 	d.Lock()
 	defer d.Unlock()
-	for k, v := range d.ShortUrls {
-		if v == val {
-			//delete(d.ShortUrls, k)
-			return k
-		}
+	return d.ShortUrls[key]
+}
+
+func (d *Data) ClearStor() {
+	d.Lock()
+	defer d.Unlock()
+	for k := range d.ShortUrls {
+		delete(d.ShortUrls, k)
 	}
-	return ""
 }
