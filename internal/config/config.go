@@ -2,11 +2,14 @@ package config
 
 import (
 	"flag"
+	"fmt"
+
+	"github.com/caarlos0/env/v6"
 )
 
 type Config struct {
-	HostAdr string
-	BaseAdr string
+	HostAdr string `env:"SERVER_ADDRESS"`
+	BaseAdr string `env:"BASE_URL"`
 }
 
 func InitConf() Config {
@@ -16,5 +19,9 @@ func InitConf() Config {
 	flag.StringVar(&conf.BaseAdr, "b", "localhost:8080", "base return adress")
 	flag.Parse()
 
+	err := env.Parse(&conf)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return conf
 }

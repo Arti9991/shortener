@@ -7,13 +7,14 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func testRequests(t *testing.T, ts *httptest.Server, method,
-	path string, body io.Reader) (*http.Response, string, string) {
+	path string, body io.Reader) (*http.Response, string) {
 	//req, err := http.NewRequest(method, ts.URL+path, nil)
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -30,8 +31,7 @@ func testRequests(t *testing.T, ts *httptest.Server, method,
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	reqURL := request.URL.String()
-	return resp, string(respBody), reqURL
+	return resp, string(respBody)
 }
 
 func TestRouter(t *testing.T) {
@@ -153,23 +153,23 @@ func TestRouter(t *testing.T) {
 		ident := make([]string, 0)
 		locate := make([]string, 0)
 		for i := range len(test.bodys) {
-			resp, get, reqURL := testRequests(t, ts, "POST", test.request, strings.NewReader(test.bodys[i]))
+			resp, get := testRequests(t, ts, "POST", test.request, strings.NewReader(test.bodys[i]))
 			defer resp.Body.Close()
 			assert.Equal(t, test.want.statusCode1, resp.StatusCode)
 			assert.Equal(t, test.want.contentType1, resp.Header.Get("Content-Type"))
-			bl := strings.Contains(get, reqURL)
+			//bl := strings.Contains(get, reqURL)
 			//fmt.Println(get)
-			assert.True(t, bl)
+			//assert.True(t, bl)
 			// assert.Equal(t, v.status, resp.StatusCode)
 			// assert.Equal(t, v.want, get)
-			get, found := strings.CutPrefix(get, reqURL)
+			get, found := strings.CutPrefix(get, "http://localhost:8080")
 			assert.True(t, found)
-			ident = append(ident, "/"+get)
+			ident = append(ident, get)
 			// }
 			// for i := range len(test.want.locations) {
 			//fmt.Println(ident)
 
-			resp2, _, _ := testRequests(t, ts, "GET", ident[i], nil)
+			resp2, _ := testRequests(t, ts, "GET", ident[i], nil)
 			defer resp2.Body.Close()
 			// fmt.Printf("\n")
 			// fmt.Println(OutUrl)
@@ -181,7 +181,7 @@ func TestRouter(t *testing.T) {
 			locate = append(locate, resp2.Header.Get("Location"))
 			//assert.Equal(t, test.want.locations[i], resp2.Header.Get("Location"))
 		}
-		//time.Sleep(time.Second)
+		time.Sleep(10 * time.Millisecond)
 		for _, loc := range locate {
 			assert.True(t, findValue(loc, test.want.locations))
 		}
