@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -277,6 +278,7 @@ func TestMultuplTasks(t *testing.T) {
 					assert.True(t, re.MatchString(strResult))
 					strResults = append(strResults, strResult)
 					//fmt.Printf("\n\n\nResult: %#v ; Iteration %d\n\n\n", strResult, i)
+					time.Sleep(10 * time.Millisecond)
 				}
 			}()
 			go func() {
