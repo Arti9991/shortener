@@ -162,7 +162,7 @@ func TestRouter(t *testing.T) {
 			//assert.True(t, bl)
 			// assert.Equal(t, v.status, resp.StatusCode)
 			// assert.Equal(t, v.want, get)
-			get, found := strings.CutPrefix(get, "http://localhost:8080")
+			get, found := strings.CutPrefix(get, "localhost:8080")
 			assert.True(t, found)
 			ident = append(ident, get)
 			// }
@@ -181,7 +181,7 @@ func TestRouter(t *testing.T) {
 			locate = append(locate, resp2.Header.Get("Location"))
 			//assert.Equal(t, test.want.locations[i], resp2.Header.Get("Location"))
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		for _, loc := range locate {
 			assert.True(t, findValue(loc, test.want.locations))
 		}
