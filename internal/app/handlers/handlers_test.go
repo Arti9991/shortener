@@ -142,6 +142,9 @@ func TestGet(t *testing.T) {
 			//if result.StatusCode != http.StatusBadRequest {
 			assert.Equal(t, test.want.statusCode, result.StatusCode)
 			assert.Equal(t, test.want.answer, result.Header.Get("Location"))
+
+			err := result.Body.Close()
+			require.NoError(t, err)
 		})
 	}
 }
