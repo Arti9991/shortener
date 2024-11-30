@@ -44,7 +44,7 @@ func MainPage(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 
 		dt.AddValue(string(body), ansStr)
 
-		ansStr = scheme + BaseAdr + req.URL.Path + ansStr
+		ansStr = scheme + "//:" + BaseAdr + req.URL.Path + ansStr
 		//fmt.Printf("\n\n\nResult: %#v ;\n\n\n", ansStr)
 
 		res.Header().Set("content-type", "text/plain")
