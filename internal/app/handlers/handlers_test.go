@@ -66,7 +66,6 @@ func TestMainPage(t *testing.T) {
 			h(w, request)
 
 			result := w.Result()
-			//if result.StatusCode != http.StatusBadRequest {
 			assert.Equal(t, test.want.statusCode, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
 
@@ -141,7 +140,6 @@ func TestGet(t *testing.T) {
 			h := http.HandlerFunc(GetAddr(&dt))
 			h(w, request)
 			result := w.Result()
-			//if result.StatusCode != http.StatusBadRequest {
 			assert.Equal(t, test.want.statusCode, result.StatusCode)
 			assert.Equal(t, test.want.answer, result.Header.Get("Location"))
 
