@@ -1,5 +1,5 @@
 // main_test.go
-package main
+package server
 
 import (
 	"io"
@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Arti9991/shortener/internal/config"
-	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -37,9 +35,8 @@ func testRequests(t *testing.T, ts *httptest.Server, method,
 }
 
 func TestRouter(t *testing.T) {
-	data := storage.NewData()
-	cfg := config.InitConf()
-	ts := httptest.NewServer(MainRouter(&data, cfg.BaseAdr))
+	serv := NewServer()
+	ts := httptest.NewServer(serv.MainRouter())
 	defer ts.Close()
 
 	type want struct {
