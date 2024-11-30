@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -261,7 +262,7 @@ func TestMultuplTasks(t *testing.T) {
 				for _, body := range test.bodys {
 					request1 := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(body))
 					w1 := httptest.NewRecorder()
-					h1 := http.HandlerFunc(MainPage(&dt, "http://example.com/"))
+					h1 := http.HandlerFunc(MainPage(&dt, "http://example.com"))
 					h1(w1, request1)
 					result := w1.Result()
 
@@ -277,7 +278,7 @@ func TestMultuplTasks(t *testing.T) {
 					strResult := string(userResult)
 					assert.True(t, re.MatchString(strResult))
 					strResults = append(strResults, strResult)
-					//fmt.Printf("\n\n\nResult: %#v ; Iteration %d\n\n\n", strResult, i)
+					fmt.Printf("\n\n\nResult: %#v ;\n\n\n", strResult)
 					time.Sleep(10 * time.Millisecond)
 				}
 			}()
