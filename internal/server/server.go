@@ -3,11 +3,13 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Arti9991/shortener/internal/app/handlers"
 	"github.com/Arti9991/shortener/internal/config"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/exp/rand"
 )
 
 type Server struct {
@@ -16,6 +18,7 @@ type Server struct {
 }
 
 func NewServer() *Server {
+	rand.Seed(uint64(time.Now().UnixNano()))
 	var Serv Server
 	stor := storage.NewData()
 	Serv.Storage = &stor

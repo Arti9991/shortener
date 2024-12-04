@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"path"
-	"time"
 
 	"github.com/Arti9991/shortener/internal/storage"
 	"golang.org/x/exp/rand"
@@ -14,7 +13,6 @@ func randomString(n int) string {
 
 	var bt []byte
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	rand.Seed(uint64(time.Now().UnixNano()))
 	for range n {
 		bt = append(bt, charset[rand.Intn(len(charset))])
 	}
