@@ -30,3 +30,17 @@ git fetch template && git checkout template/main .github
 При мёрже ветки с инкрементом в основную ветку `main` будут запускаться все автотесты.
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
+
+Комманды для ручной проверки сервера (на данной итерации)
+
+Стартовый POST запрос в cURL:
+
+```
+curl -v -X POST -H "Content-Type: text/plain" -d www.ya.ru http://localhost:8080
+```
+
+Get запрос для извлечения ссылки в заголовке location:
+
+```
+curl -v GET -H "Content-Type: text/plain" http://localhost:8080/<id>
+```
