@@ -38,11 +38,11 @@ func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
 			status: 0,
 			size:   0,
 		}
-		res_log := loggingResponseWriter{
+		reslog := loggingResponseWriter{
 			ResponseWriter: res, // встраиваем оригинальный http.ResponseWriter
 			responseData:   responseData,
 		}
-		h(&res_log, req)
+		h(&reslog, req)
 		duration := time.Since(start)
 		Log.Info("got incoming HTTP request",
 			zap.String("URI", req.RequestURI),

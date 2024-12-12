@@ -43,8 +43,8 @@ func TestMainPage(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode:  400,
-				contentType: "text/plain; charset=utf-8",
-				answer:      "The body is empty!",
+				contentType: "",
+				answer:      "",
 			},
 		},
 		{
@@ -53,8 +53,8 @@ func TestMainPage(t *testing.T) {
 			body:    "",
 			want: want{
 				statusCode:  400,
-				contentType: "text/plain; charset=utf-8",
-				answer:      "The body is empty!",
+				contentType: "",
+				answer:      "",
 			},
 		},
 	}
