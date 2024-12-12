@@ -7,8 +7,10 @@ import (
 
 	"github.com/Arti9991/shortener/internal/app/handlers"
 	"github.com/Arti9991/shortener/internal/config"
+	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 	"golang.org/x/exp/rand"
 )
 
@@ -29,8 +31,8 @@ func NewServer() *Server {
 func (s *Server) MainRouter() chi.Router {
 	rt := chi.NewRouter()
 
-	rt.Post("/", handlers.MainPage(s.Storage, s.Config.BaseAdr))
-	rt.Get("/{id}", handlers.GetAddr(s.Storage))
+	rt.Post("/", logger.MiddlewareLogger(handlers.MainPage(s.Storage, s.Config.BaseAdr)))
+	rt.Get("/{id}", logger.MiddlewareLogger(handlers.GetAddr(s.Storage)))
 
 	return rt
 }
@@ -38,6 +40,10 @@ func (s *Server) MainRouter() chi.Router {
 func RunServer() error {
 	serv := NewServer()
 
+	if err := logger.Initialize(serv.Config.LoggLevel); err != nil {
+		return err
+	}
+	logger.Log.Info("New server initialyzed!", zap.String("Server addres:", serv.Config.HostAdr))
 	fmt.Printf("Host adr: %s\n", serv.Config.HostAdr)
 	fmt.Printf("Base adr: %s\n", serv.Config.BaseAdr)
 
