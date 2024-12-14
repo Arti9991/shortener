@@ -39,6 +39,11 @@ git fetch template && git checkout template/main .github
 curl -v -X POST -H "Content-Type: text/plain" -d www.ya.ru http://localhost:8080
 ```
 
+POST запрос c JSON в cURL:
+```
+curl -v -X POST -H "Content-Type: application/json" -d "{\"url\":\"www.ya.ru\"}" http://localhost:8081/api/shorten
+```
+
 Get запрос для извлечения ссылки в заголовке location:
 
 ```

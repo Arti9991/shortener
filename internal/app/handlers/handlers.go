@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"path"
@@ -22,7 +23,7 @@ func randomString(n int) string {
 	return string(bt)
 }
 
-func MainPage(dt *storage.Data, BaseAdr string) http.HandlerFunc {
+func PostAddr(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			logger.Log.Info("Only POST requests are allowed with this path!", zap.String("method", req.Method))
@@ -31,7 +32,7 @@ func MainPage(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 		}
 		body, err := io.ReadAll(req.Body)
 		if err != nil || string(body) == "" {
-			logger.Log.Info("Bad request body", zap.String("method", string(body)))
+			logger.Log.Info("Bad request body", zap.String("body", string(body)))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -69,5 +70,51 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 		res.WriteHeader(http.StatusTemporaryRedirect)
 		//logger.Log.Info("Response status is 307 TemporaryRedirect.", zap.String("location", res.Header().Get("Location")), zap.Int("size", len(redir)))
 
+	}
+}
+
+func PostAddrJSON(dt *storage.Data, BaseAdr string) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodPost {
+			logger.Log.Info("Only POST requests are allowed with this path!", zap.String("method", req.Method))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if req.Header.Get("content-type") != "application/json" {
+			logger.Log.Info("Bad content-type header with this path!", zap.String("header", req.Header.Get("content-type")))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		IncomeURL := &struct {
+			URL string `json:"url"`
+		}{}
+		OutURL := &struct {
+			ShortUrl string `json:"result"`
+		}{}
+
+		err := json.NewDecoder(req.Body).Decode(&IncomeURL)
+		if err != nil {
+			logger.Log.Info("Bad request body", zap.Error(err))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		hashStr := randomString(8)
+		dt.AddValue(hashStr, IncomeURL.URL)
+
+		OutURL.ShortUrl = BaseAdr + "/" + hashStr
+
+		out, err := json.Marshal(OutURL)
+		if err != nil {
+			logger.Log.Info("Wrong responce body", zap.Error(err))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		res.Header().Set("content-type", "application/json")
+		res.WriteHeader(http.StatusCreated)
+		res.Write(out)
+		//logger.Log.Info("Response status is 201 Created. Response body size", zap.Int("size", len([]byte(ansStr))))
 	}
 }

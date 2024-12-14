@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMainPage(t *testing.T) {
+func TestPostAddr(t *testing.T) {
 	type want struct {
 		statusCode  int
 		contentType string
@@ -62,7 +65,7 @@ func TestMainPage(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(test.body))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(MainPage(&dt, "http://example.com"))
+			h := http.HandlerFunc(PostAddr(&dt, "http://example.com"))
 			h(w, request)
 
 			result := w.Result()
@@ -79,6 +82,71 @@ func TestMainPage(t *testing.T) {
 			assert.True(t, bl)
 			res, _ := strings.CutPrefix(strResult, "http://example.com/")
 			assert.Equal(t, test.body, dt.ShortUrls[res])
+		})
+	}
+}
+
+func TestPostAddrJSON(t *testing.T) {
+	type want struct {
+		statusCode  int
+		contentType string
+		answer      string
+	}
+	dt := storage.NewData()
+	tests := []struct {
+		name    string
+		request string
+		income  string
+		want    want
+	}{
+		{
+			name:    "Simple request for code 201",
+			request: "/api/shorten",
+			income:  `{"url":"www.ya.ru"}`,
+			want: want{
+				statusCode:  201,
+				contentType: "application/json",
+				answer:      "www.ya.ru",
+			},
+		},
+		{
+			name:    "Long request for code 201",
+			request: "/api/shorten",
+			income:  `{"url":"passpot/idcheck/name/definition/correct"}`,
+			want: want{
+				statusCode:  201,
+				contentType: "application/json",
+				answer:      "passpot/idcheck/name/definition/correct",
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			ResUrl := &struct {
+				Result string `json:"result"`
+			}{}
+
+			request := httptest.NewRequest(http.MethodPost, test.request, bytes.NewBuffer([]byte(test.income)))
+			request.Header.Add("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(PostAddrJSON(&dt, "http://example.com"))
+			h(w, request)
+
+			result := w.Result()
+			assert.Equal(t, test.want.statusCode, result.StatusCode)
+			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
+
+			err := json.NewDecoder(result.Body).Decode(&ResUrl)
+			require.NoError(t, err)
+
+			fmt.Println(ResUrl.Result)
+			strResult := string(ResUrl.Result)
+
+			res, _ := strings.CutPrefix(strResult, "http://example.com/")
+			assert.Equal(t, test.want.answer, dt.ShortUrls[res])
+			err = result.Body.Close()
+			require.NoError(t, err)
 		})
 	}
 }
@@ -227,7 +295,7 @@ func TestMultuplTasks(t *testing.T) {
 			for _, body := range test.bodys {
 				request1 := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(body))
 				w1 := httptest.NewRecorder()
-				h1 := http.HandlerFunc(MainPage(&dt, "http://example.com"))
+				h1 := http.HandlerFunc(PostAddr(&dt, "http://example.com"))
 				h1(w1, request1)
 				result := w1.Result()
 

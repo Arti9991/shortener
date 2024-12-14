@@ -31,7 +31,8 @@ func NewServer() *Server {
 func (s *Server) MainRouter() chi.Router {
 	rt := chi.NewRouter()
 
-	rt.Post("/", logger.MiddlewareLogger(handlers.MainPage(s.Storage, s.Config.BaseAdr)))
+	rt.Post("/", logger.MiddlewareLogger(handlers.PostAddr(s.Storage, s.Config.BaseAdr)))
+	rt.Post("/api/shorten", logger.MiddlewareLogger(handlers.PostAddrJSON(s.Storage, s.Config.BaseAdr)))
 	rt.Get("/{id}", logger.MiddlewareLogger(handlers.GetAddr(s.Storage)))
 
 	return rt
