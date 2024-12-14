@@ -123,7 +123,7 @@ func TestPostAddrJSON(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			ResUrl := &struct {
+			ResURL := &struct {
 				Result string `json:"result"`
 			}{}
 
@@ -137,11 +137,11 @@ func TestPostAddrJSON(t *testing.T) {
 			assert.Equal(t, test.want.statusCode, result.StatusCode)
 			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
 
-			err := json.NewDecoder(result.Body).Decode(&ResUrl)
+			err := json.NewDecoder(result.Body).Decode(&ResURL)
 			require.NoError(t, err)
 
-			fmt.Println(ResUrl.Result)
-			strResult := string(ResUrl.Result)
+			fmt.Println(ResURL.Result)
+			strResult := string(ResURL.Result)
 
 			res, _ := strings.CutPrefix(strResult, "http://example.com/")
 			assert.Equal(t, test.want.answer, dt.ShortUrls[res])

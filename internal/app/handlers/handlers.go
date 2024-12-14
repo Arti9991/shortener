@@ -90,7 +90,7 @@ func PostAddrJSON(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 			URL string `json:"url"`
 		}{}
 		OutURL := &struct {
-			ShortUrl string `json:"result"`
+			ShortURL string `json:"result"`
 		}{}
 
 		err := json.NewDecoder(req.Body).Decode(&IncomeURL)
@@ -103,7 +103,7 @@ func PostAddrJSON(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 		hashStr := randomString(8)
 		dt.AddValue(hashStr, IncomeURL.URL)
 
-		OutURL.ShortUrl = BaseAdr + "/" + hashStr
+		OutURL.ShortURL = BaseAdr + "/" + hashStr
 
 		out, err := json.Marshal(OutURL)
 		if err != nil {
