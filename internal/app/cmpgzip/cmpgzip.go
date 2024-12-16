@@ -1,4 +1,4 @@
-package gzipcomp
+package cmpgzip
 
 import (
 	"compress/gzip"
