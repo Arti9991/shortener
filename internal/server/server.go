@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Arti9991/shortener/internal/app/gzipComp"
 	"github.com/Arti9991/shortener/internal/app/handlers"
 	"github.com/Arti9991/shortener/internal/config"
 	"github.com/Arti9991/shortener/internal/logger"
@@ -30,10 +31,9 @@ func NewServer() *Server {
 
 func (s *Server) MainRouter() chi.Router {
 	rt := chi.NewRouter()
-
-	rt.Post("/", logger.MiddlewareLogger(handlers.PostAddr(s.Storage, s.Config.BaseAdr)))
-	rt.Post("/api/shorten", logger.MiddlewareLogger(handlers.PostAddrJSON(s.Storage, s.Config.BaseAdr)))
-	rt.Get("/{id}", logger.MiddlewareLogger(handlers.GetAddr(s.Storage)))
+	rt.Post("/", logger.MiddlewareLogger(gzipComp.MiddlewareGzip(handlers.PostAddr(s.Storage, s.Config.BaseAdr))))
+	rt.Post("/api/shorten", logger.MiddlewareLogger(gzipComp.MiddlewareGzip(handlers.PostAddrJSON(s.Storage, s.Config.BaseAdr))))
+	rt.Get("/{id}", logger.MiddlewareLogger(gzipComp.MiddlewareGzip(handlers.GetAddr(s.Storage))))
 
 	return rt
 }
