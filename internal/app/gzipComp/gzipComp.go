@@ -1,4 +1,4 @@
-package gzipComp
+package gzipcomp
 
 import (
 	"compress/gzip"
@@ -105,7 +105,6 @@ func MiddlewareGzip(h http.HandlerFunc) http.HandlerFunc {
 			cr, err := newCompressReader(req.Body)
 			if err != nil {
 				logger.Log.Info("Error in compress reader", zap.Error(err))
-				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
 			// меняем тело запроса на новое
