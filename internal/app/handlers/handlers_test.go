@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -140,7 +139,7 @@ func TestPostAddrJSON(t *testing.T) {
 			err := json.NewDecoder(result.Body).Decode(&ResURL)
 			require.NoError(t, err)
 
-			fmt.Println(ResURL.Result)
+			//fmt.Println(ResURL.Result)
 			strResult := string(ResURL.Result)
 
 			res, _ := strings.CutPrefix(strResult, "http://example.com/")
