@@ -1,15 +1,17 @@
 package storage
 
-import "sync"
+import (
+	"sync"
+)
 
 type Data struct {
 	sync.Mutex
 	ShortUrls map[string]string
 }
 
-func NewData() Data {
+func NewData() *Data {
 	dt := make(map[string]string)
-	return Data{ShortUrls: dt}
+	return &Data{ShortUrls: dt}
 }
 
 func (d *Data) AddValue(key string, value string) {
@@ -19,6 +21,7 @@ func (d *Data) AddValue(key string, value string) {
 	if !ok {
 		d.ShortUrls[key] = value
 	}
+
 }
 
 func (d *Data) GetURL(key string) string {
