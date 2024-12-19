@@ -12,7 +12,7 @@ import (
 )
 
 type FileStor struct {
-	Id       int    `json:"uuid"`
+	ID       int    `json:"uuid"`
 	Shorturl string `json:"short_url"`
 	Origurl  string `json:"original_url"`
 }
@@ -50,7 +50,7 @@ func (d *FileData) FileRead() {
 			logger.Log.Info("Error in unmarshalling data!", zap.Error(err))
 		}
 		d.stor.AddValue(fl.Shorturl, fl.Origurl)
-		id = fl.Id
+		id = fl.ID
 	}
 	d.ID = id
 }
@@ -65,10 +65,10 @@ func (d *FileData) FileSave(key string, val string) {
 	defer file.Close()
 	d.ID += 1
 	var fl FileStor
-	fl.Id = d.ID
+	fl.ID = d.ID
 	fl.Origurl = val
 	fl.Shorturl = key
-	fl.Id = d.ID
+	fl.ID = d.ID
 	data, err := json.Marshal(&fl)
 	if err != nil {
 		logger.Log.Info("Error in marshalling data!", zap.Error(err))
