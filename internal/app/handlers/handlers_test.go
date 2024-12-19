@@ -11,10 +11,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Arti9991/shortener/internal/config"
+	"github.com/Arti9991/shortener/internal/files"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var conf = config.InitConfTests()
+var dt = storage.NewData()
+var fl = files.NewFiles(conf.FilePath, dt)
+var hd = NewHandlersData(dt, conf.BaseAdr, fl)
 
 func TestPostAddr(t *testing.T) {
 	type want struct {
@@ -22,7 +29,7 @@ func TestPostAddr(t *testing.T) {
 		contentType string
 		answer      string
 	}
-	dt := storage.NewData()
+
 	tests := []struct {
 		name    string
 		request string
@@ -64,7 +71,7 @@ func TestPostAddr(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(test.body))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(PostAddr(&dt, "http://example.com"))
+			h := http.HandlerFunc(PostAddr(hd))
 			h(w, request)
 
 			result := w.Result()
@@ -91,7 +98,6 @@ func TestPostAddrJSON(t *testing.T) {
 		contentType string
 		answer      string
 	}
-	dt := storage.NewData()
 	tests := []struct {
 		name    string
 		request string
@@ -125,11 +131,10 @@ func TestPostAddrJSON(t *testing.T) {
 			ResURL := &struct {
 				Result string `json:"result"`
 			}{}
-
 			request := httptest.NewRequest(http.MethodPost, test.request, bytes.NewBuffer([]byte(test.income)))
 			request.Header.Add("Content-Type", "application/json")
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(PostAddrJSON(&dt, "http://example.com"))
+			h := http.HandlerFunc(PostAddrJSON(hd))
 			h(w, request)
 
 			result := w.Result()
@@ -143,7 +148,7 @@ func TestPostAddrJSON(t *testing.T) {
 			strResult := string(ResURL.Result)
 
 			res, _ := strings.CutPrefix(strResult, "http://example.com/")
-			assert.Equal(t, test.want.answer, dt.ShortUrls[res])
+			assert.Equal(t, test.want.answer, hd.dt.ShortUrls[res])
 			err = result.Body.Close()
 			require.NoError(t, err)
 		})
@@ -155,7 +160,6 @@ func TestGet(t *testing.T) {
 		statusCode int
 		answer     string
 	}
-	dt := storage.NewData()
 	tests := []struct {
 		name    string
 		hash    string
@@ -204,7 +208,7 @@ func TestGet(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(GetAddr(&dt))
+			h := http.HandlerFunc(GetAddr(hd))
 			h(w, request)
 			result := w.Result()
 			assert.Equal(t, test.want.statusCode, result.StatusCode)
@@ -224,7 +228,6 @@ func TestMultuplTasks(t *testing.T) {
 		contentType2 string
 		locations    []string
 	}
-	dt := storage.NewData()
 	tests := []struct {
 		name    string
 		request string
@@ -294,7 +297,7 @@ func TestMultuplTasks(t *testing.T) {
 			for _, body := range test.bodys {
 				request1 := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(body))
 				w1 := httptest.NewRecorder()
-				h1 := http.HandlerFunc(PostAddr(&dt, "http://example.com"))
+				h1 := http.HandlerFunc(PostAddr(hd))
 				h1(w1, request1)
 				result := w1.Result()
 
@@ -317,7 +320,7 @@ func TestMultuplTasks(t *testing.T) {
 			for i, loc := range test.want.locations {
 				request2 := httptest.NewRequest(http.MethodGet, strResults[i], nil)
 				w2 := httptest.NewRecorder()
-				h2 := http.HandlerFunc(GetAddr(&dt))
+				h2 := http.HandlerFunc(GetAddr(hd))
 				h2(w2, request2)
 				result2 := w2.Result()
 

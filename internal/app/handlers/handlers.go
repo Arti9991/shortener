@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/Arti9991/shortener/internal/files"
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/storage"
 	"go.uber.org/zap"
@@ -23,7 +24,17 @@ func randomString(n int) string {
 	return string(bt)
 }
 
-func PostAddr(dt *storage.Data, BaseAdr string) http.HandlerFunc {
+type handlersData struct {
+	dt      *storage.Data
+	BaseAdr string
+	Files   *files.FileData
+}
+
+func NewHandlersData(stor *storage.Data, base string, files *files.FileData) *handlersData {
+	return &handlersData{dt: stor, BaseAdr: base, Files: files}
+}
+
+func PostAddr(hd *handlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			logger.Log.Info("Only POST requests are allowed with this path!", zap.String("method", req.Method))
@@ -38,9 +49,10 @@ func PostAddr(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 		}
 
 		hashStr := randomString(8)
-		dt.AddValue(hashStr, string(body))
+		hd.dt.AddValue(hashStr, string(body))
+		hd.Files.FileSave(hashStr, string(body))
 
-		ansStr := BaseAdr + "/" + hashStr
+		ansStr := hd.BaseAdr + "/" + hashStr
 
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
@@ -49,7 +61,7 @@ func PostAddr(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 	}
 }
 
-func GetAddr(dt *storage.Data) http.HandlerFunc {
+func GetAddr(hd *handlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
 			logger.Log.Info("Only GET requests are allowed with this path!", zap.String("method", req.Method))
@@ -58,7 +70,7 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 		}
 
 		ident := path.Base(req.URL.String())
-		redir := dt.GetURL(ident)
+		redir := hd.dt.GetURL(ident)
 
 		if redir == "" {
 			logger.Log.Info("There is no such identifier!", zap.String("ID", ident))
@@ -73,7 +85,7 @@ func GetAddr(dt *storage.Data) http.HandlerFunc {
 	}
 }
 
-func PostAddrJSON(dt *storage.Data, BaseAdr string) http.HandlerFunc {
+func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			logger.Log.Info("Only POST requests are allowed with this path!", zap.String("method", req.Method))
@@ -101,9 +113,10 @@ func PostAddrJSON(dt *storage.Data, BaseAdr string) http.HandlerFunc {
 		}
 
 		hashStr := randomString(8)
-		dt.AddValue(hashStr, IncomeURL.URL)
+		hd.dt.AddValue(hashStr, IncomeURL.URL)
+		hd.Files.FileSave(hashStr, IncomeURL.URL)
 
-		OutURL.ShortURL = BaseAdr + "/" + hashStr
+		OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
 
 		out, err := json.Marshal(OutURL)
 		if err != nil {
