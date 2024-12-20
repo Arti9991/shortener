@@ -14,6 +14,7 @@ type Config struct {
 	FilePath  string `env:"FILE_STORAGE_PATH"`
 }
 
+// инициализация конфигурации для чтения флагов и переменных окружения
 func InitConf() Config {
 	var conf Config
 
@@ -30,6 +31,7 @@ func InitConf() Config {
 	return conf
 }
 
+// инициализация тестовой конфигурации с заданными параметрами
 func InitConfTests() Config {
 	var conf Config
 	conf.HostAdr = "localhost:8080"

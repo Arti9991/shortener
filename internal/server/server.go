@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -22,6 +21,7 @@ type Server struct {
 	Files   *files.FileData
 }
 
+// инциализация всех необходимых струткур
 func NewServer() *Server {
 	rand.Seed(uint64(time.Now().UnixNano()))
 	var Serv Server
@@ -36,6 +36,7 @@ func NewServer() *Server {
 	return &Serv
 }
 
+// создание роутера chi для хэндлеров
 func (s *Server) MainRouter() chi.Router {
 	hd := handlers.NewHandlersData(s.Storage, s.Config.BaseAdr, s.Files)
 
@@ -47,16 +48,18 @@ func (s *Server) MainRouter() chi.Router {
 	return rt
 }
 
+// запуск сервера со всеми полученными параметрами
 func RunServer() error {
 	serv := NewServer()
-	//defer serv.Files.FileSave(serv.Config.FilePath)
-
 	if err := logger.Initialize(serv.Config.LoggLevel); err != nil {
 		return err
 	}
-	logger.Log.Info("New server initialyzed!", zap.String("Server addres:", serv.Config.HostAdr))
-	fmt.Printf("Host adr: %s\n", serv.Config.HostAdr)
-	fmt.Printf("Base adr: %s\n", serv.Config.BaseAdr)
+
+	logger.Log.Info("New server initialyzed!",
+		zap.String("Server addres:", serv.Config.HostAdr),
+		zap.String("Base addres:", serv.Config.BaseAdr),
+	)
+
 	serv.Files.FileRead()
 
 	err := http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())

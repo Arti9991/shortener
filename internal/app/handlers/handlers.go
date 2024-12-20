@@ -30,10 +30,12 @@ type handlersData struct {
 	Files   *files.FileData
 }
 
+// инциализация структуры с параметрами хэндлеров
 func NewHandlersData(stor *storage.Data, base string, files *files.FileData) *handlersData {
 	return &handlersData{dt: stor, BaseAdr: base, Files: files}
 }
 
+// хэндлер создания укороченного URL
 func PostAddr(hd *handlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
@@ -61,6 +63,7 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 	}
 }
 
+// хэндлер для получения оригинального URL по укороченному
 func GetAddr(hd *handlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
@@ -85,6 +88,7 @@ func GetAddr(hd *handlersData) http.HandlerFunc {
 	}
 }
 
+// хэндлер создания укороченного URL в формате JSON
 func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
@@ -128,6 +132,5 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 		res.Header().Set("content-type", "application/json")
 		res.WriteHeader(http.StatusCreated)
 		res.Write(out)
-		//logger.Log.Info("Response status is 201 Created. Response body size", zap.Int("size", len([]byte(ansStr))))
 	}
 }

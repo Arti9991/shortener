@@ -10,6 +10,7 @@ import (
 
 var Log *zap.Logger = zap.NewNop()
 
+// инициализация zap логгера (уровень логгирования INFO)
 func Initialize(level string) error {
 	// преобразуем текстовый уровень логирования в zap.AtomicLevel
 	lvl, err := zap.ParseAtomicLevel(level)
@@ -31,6 +32,7 @@ func Initialize(level string) error {
 	return nil
 }
 
+// middleware обработчик для zap логгера с логированием полученных и отправленных запросов
 func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		start := time.Now()
@@ -39,7 +41,7 @@ func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
 			size:   0,
 		}
 		reslog := loggingResponseWriter{
-			ResponseWriter: res, // встраиваем оригинальный http.ResponseWriter
+			ResponseWriter: res, //встраиваем оригинальный http.ResponseWriter
 			responseData:   responseData,
 		}
 		h(&reslog, req)
@@ -58,28 +60,28 @@ func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
 
 // переопределение методов write и WriteHeader для удобного использования middleware
 type (
-	// берём структуру для хранения сведений об ответе
+	//структура для хранения сведений об ответе
 	responseData struct {
 		status int
 		size   int
 	}
 
-	// добавляем реализацию http.ResponseWriter
+	//реализация http.ResponseWriter
 	loggingResponseWriter struct {
-		http.ResponseWriter // встраиваем оригинальный http.ResponseWriter
+		http.ResponseWriter //встраиваем оригинальный http.ResponseWriter
 		responseData        *responseData
 	}
 )
 
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
-	// записываем ответ, используя оригинальный http.ResponseWriter
+	//запись ответа, используя оригинальный http.ResponseWriter
 	size, err := r.ResponseWriter.Write(b)
-	r.responseData.size += size // захватываем размер
+	r.responseData.size += size
 	return size, err
 }
 
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
-	// записываем код статуса, используя оригинальный http.ResponseWriter
+	//запись кода статуса, используя оригинальный http.ResponseWriter
 	r.ResponseWriter.WriteHeader(statusCode)
-	r.responseData.status = statusCode // захватываем код статуса
+	r.responseData.status = statusCode //код статуса
 }

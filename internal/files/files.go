@@ -23,10 +23,10 @@ type FileData struct {
 }
 
 func NewFiles(path string, stor *storage.Data) *FileData {
-
 	return &FileData{ID: 0, stor: stor, path: path}
 }
 
+// функция для чтения всех данных в файле и сохранения их в карту
 func (d *FileData) FileRead() {
 	var id int
 	logger.Log.Info("INFO reading file")
@@ -55,6 +55,7 @@ func (d *FileData) FileRead() {
 	d.ID = id
 }
 
+// функция сохранения исходного и укороченного URL в файл
 func (d *FileData) FileSave(key string, val string) {
 	logger.Log.Info("INFO Saving file")
 	file, err := os.OpenFile(d.path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
@@ -74,10 +75,11 @@ func (d *FileData) FileSave(key string, val string) {
 		logger.Log.Info("Error in marshalling data!", zap.Error(err))
 	}
 
-	// добавляем перенос строки
+	//запись строки
 	if _, err := writer.Write(data); err != nil {
 		logger.Log.Info("Error in writing data!", zap.Error(err))
 	}
+	//запись символа переноса строки
 	if err := writer.WriteByte('\n'); err != nil {
 		logger.Log.Info("Error in writing data!", zap.Error(err))
 	}
