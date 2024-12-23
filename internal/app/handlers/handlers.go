@@ -52,7 +52,10 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 
 		hashStr := randomString(8)
 		hd.dt.AddValue(hashStr, string(body))
-		hd.Files.FileSave(hashStr, string(body))
+		err = hd.Files.FileSave(hashStr, string(body))
+		if err != nil {
+			logger.Log.Info("Error in FileSave", zap.Error(err))
+		}
 
 		ansStr := hd.BaseAdr + "/" + hashStr
 
@@ -118,7 +121,10 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 
 		hashStr := randomString(8)
 		hd.dt.AddValue(hashStr, IncomeURL.URL)
-		hd.Files.FileSave(hashStr, IncomeURL.URL)
+		err = hd.Files.FileSave(hashStr, IncomeURL.URL)
+		if err != nil {
+			logger.Log.Info("Error in FileSave", zap.Error(err))
+		}
 
 		OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
 

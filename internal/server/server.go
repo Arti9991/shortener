@@ -22,18 +22,26 @@ type Server struct {
 }
 
 // инциализация всех необходимых струткур
-func NewServer() *Server {
+func NewServer() (*Server, error) {
+	// установка сида для случайных чисел
 	rand.Seed(uint64(time.Now().UnixNano()))
 	var Serv Server
+	// инициализация конфигурации
 	Serv.Config = config.InitConf()
+	// инициализация логгера
+	err := logger.Initialize(Serv.Config.LoggLevel)
+	if err != nil {
+		return nil, err
+	}
+	// инциализация хранилища в памяти
+	Serv.Storage = storage.NewData()
+	// инциализация структуры для файлов
+	Serv.Files, err = files.NewFiles(Serv.Config.FilePath, Serv.Storage)
+	if err != nil {
+		logger.Log.Info("Error in creating or file! Setting in memory mode!", zap.Error(err))
+	}
 
-	stor := storage.NewData()
-	Serv.Storage = stor
-
-	fl := files.NewFiles(Serv.Config.FilePath, Serv.Storage)
-	Serv.Files = fl
-
-	return &Serv
+	return &Serv, nil
 }
 
 // создание роутера chi для хэндлеров
@@ -50,8 +58,8 @@ func (s *Server) MainRouter() chi.Router {
 
 // запуск сервера со всеми полученными параметрами
 func RunServer() error {
-	serv := NewServer()
-	if err := logger.Initialize(serv.Config.LoggLevel); err != nil {
+	serv, err := NewServer()
+	if err != nil {
 		return err
 	}
 
@@ -60,8 +68,11 @@ func RunServer() error {
 		zap.String("Base addres:", serv.Config.BaseAdr),
 	)
 
-	serv.Files.FileRead()
+	err = serv.Files.FileRead()
+	if err != nil {
+		logger.Log.Info("Error in reading file!", zap.Error(err))
+	}
 
-	err := http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
+	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
 	return err
 }

@@ -21,7 +21,7 @@ func InitConf() Config {
 	flag.StringVar(&conf.HostAdr, "a", "localhost:8080", "server host adress")
 	flag.StringVar(&conf.BaseAdr, "b", "http://localhost:8080", "base return adress")
 	flag.StringVar(&conf.LoggLevel, "l", "Info", "logging level")
-	flag.StringVar(&conf.FilePath, "f", "/storage.txt", "base return adress")
+	flag.StringVar(&conf.FilePath, "f", "./storage.txt", "base return adress")
 	flag.Parse()
 
 	err := env.Parse(&conf)

@@ -36,7 +36,8 @@ import (
 // }
 
 // func TestRouter(t *testing.T) {
-// 	serv := NewServer()
+// 	serv, err := NewServer()
+// 	require.NoError(t, err)
 // 	ts := httptest.NewServer(serv.MainRouter())
 // 	defer ts.Close()
 
@@ -214,7 +215,8 @@ func testRequestCompress(t *testing.T, ts *httptest.Server, method,
 	return resp, string(ResURL.Result)
 }
 func TestRouterCompress(t *testing.T) {
-	serv := NewServer()
+	serv, err := NewServer()
+	require.NoError(t, err)
 	ts := httptest.NewServer(serv.MainRouter())
 	defer ts.Close()
 

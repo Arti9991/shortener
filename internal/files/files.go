@@ -17,22 +17,34 @@ type FileStor struct {
 	Origurl  string `json:"original_url"`
 }
 type FileData struct {
-	ID   int
-	stor *storage.Data
-	path string
+	ID       int
+	stor     *storage.Data
+	path     string
+	inMemory bool //флаг для типа работы с памятью (файл или временная)
 }
 
-func NewFiles(path string, stor *storage.Data) *FileData {
-	return &FileData{ID: 0, stor: stor, path: path}
+func NewFiles(path string, stor *storage.Data) (*FileData, error) {
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil || path == "" {
+		return &FileData{inMemory: true}, err
+	}
+	file.Close()
+	return &FileData{ID: 0, stor: stor, path: path, inMemory: false}, nil
 }
 
 // функция для чтения всех данных в файле и сохранения их в карту
-func (d *FileData) FileRead() {
+func (d *FileData) FileRead() error {
+	// проверка флага на хранение данных в памяти
+	if d.inMemory {
+		return nil
+	}
 	var id int
 	logger.Log.Info("INFO reading file")
 	file, err := os.OpenFile(d.path, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
-		logger.Log.Info("Error in creating file!", zap.Error(err))
+		logger.Log.Info("Error in reading file! Setting in memory mode!", zap.Error(err))
+		d.inMemory = true
+		return err
 	}
 	defer file.Close()
 	reader := bufio.NewReader(file)
@@ -43,24 +55,32 @@ func (d *FileData) FileRead() {
 			break
 		} else if err != nil && err != io.EOF {
 			logger.Log.Info("Error in reading data!", zap.Error(err))
-			break
+			return err
 		}
 		err = json.Unmarshal(buff, &fl)
 		if err != nil {
 			logger.Log.Info("Error in unmarshalling data!", zap.Error(err))
+			return err
 		}
 		d.stor.AddValue(fl.Shorturl, fl.Origurl)
 		id = fl.ID
 	}
 	d.ID = id
+	return nil
 }
 
 // функция сохранения исходного и укороченного URL в файл
-func (d *FileData) FileSave(key string, val string) {
+func (d *FileData) FileSave(key string, val string) error {
+	// проверка флага на хранение данных в памяти
+	if d.inMemory {
+		return nil
+	}
 	logger.Log.Info("INFO Saving file")
 	file, err := os.OpenFile(d.path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		logger.Log.Info("Error in creating file!", zap.Error(err))
+		logger.Log.Info("Error in saving file! Setting in memory mode!", zap.Error(err))
+		d.inMemory = true
+		return err
 	}
 	writer := bufio.NewWriter(file)
 	defer file.Close()
@@ -87,4 +107,5 @@ func (d *FileData) FileSave(key string, val string) {
 	if err := writer.Flush(); err != nil {
 		logger.Log.Info("Error in flashing data!", zap.Error(err))
 	}
+	return nil
 }

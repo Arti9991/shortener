@@ -20,7 +20,7 @@ import (
 
 var conf = config.InitConfTests()
 var dt = storage.NewData()
-var fl = files.NewFiles(conf.FilePath, dt)
+var fl, _ = files.NewFiles(conf.FilePath, dt)
 var hd = NewHandlersData(dt, conf.BaseAdr, fl)
 
 func TestPostAddr(t *testing.T) {
