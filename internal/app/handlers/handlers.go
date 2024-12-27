@@ -25,8 +25,8 @@ type handlersData struct {
 }
 
 // инциализация структуры с параметрами хэндлеров
-func NewHandlersData(stor *inmemory.Data, base string, files *files.FileData, DbAddress string) *handlersData {
-	return &handlersData{dt: stor, BaseAdr: base, Files: files, DBInfo: DbAddress}
+func NewHandlersData(stor *inmemory.Data, base string, files *files.FileData, DBAddress string) *handlersData {
+	return &handlersData{dt: stor, BaseAdr: base, Files: files, DBInfo: DBAddress}
 }
 
 // // хэндлер создания укороченного URL
