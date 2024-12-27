@@ -12,16 +12,16 @@ import (
 	"time"
 
 	"github.com/Arti9991/shortener/internal/config"
-	"github.com/Arti9991/shortener/internal/files"
-	"github.com/Arti9991/shortener/internal/storage"
+	"github.com/Arti9991/shortener/internal/storage/files"
+	"github.com/Arti9991/shortener/internal/storage/inmemory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var conf = config.InitConfTests()
-var dt = storage.NewData()
+var dt = inmemory.NewData()
 var fl, _ = files.NewFiles(conf.FilePath, dt)
-var hd = NewHandlersData(dt, conf.BaseAdr, fl)
+var hd = NewHandlersData(dt, conf.BaseAdr, fl, conf.DbAddress)
 
 func TestPostAddr(t *testing.T) {
 	type want struct {

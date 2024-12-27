@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/Arti9991/shortener/internal/logger"
-	"github.com/Arti9991/shortener/internal/storage"
+	"github.com/Arti9991/shortener/internal/storage/inmemory"
 	"go.uber.org/zap"
 )
 
@@ -18,12 +18,12 @@ type FileStor struct {
 }
 type FileData struct {
 	ID       int
-	stor     *storage.Data
+	stor     *inmemory.Data
 	path     string
 	inMemory bool //флаг для типа работы с памятью (файл или временная)
 }
 
-func NewFiles(path string, stor *storage.Data) (*FileData, error) {
+func NewFiles(path string, stor *inmemory.Data) (*FileData, error) {
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil || path == "" {
 		return &FileData{inMemory: true}, err
