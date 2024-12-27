@@ -46,7 +46,7 @@ func NewServer() (*Server, error) {
 
 // создание роутера chi для хэндлеров
 func (s *Server) MainRouter() chi.Router {
-	hd := handlers.NewHandlersData(s.Storage, s.Config.BaseAdr, s.Files, s.Config.DbAddress)
+	hd := handlers.NewHandlersData(s.Storage, s.Config.BaseAdr, s.Files, s.Config.DBAddress)
 
 	rt := chi.NewRouter()
 	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddr(hd))))

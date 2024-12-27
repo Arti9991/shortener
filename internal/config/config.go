@@ -12,7 +12,7 @@ type Config struct {
 	BaseAdr   string `env:"BASE_URL"`
 	LoggLevel string `env:"LOG_LEVEL"`
 	FilePath  string `env:"FILE_STORAGE_PATH"`
-	DbAddress string `env:"DATABASE_DSN" envDefault:"host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"`
+	DBAddress string `env:"DATABASE_DSN"`
 }
 
 // инициализация конфигурации для чтения флагов и переменных окружения
@@ -22,8 +22,8 @@ func InitConf() Config {
 	flag.StringVar(&conf.HostAdr, "a", "localhost:8080", "server host adress")
 	flag.StringVar(&conf.BaseAdr, "b", "http://localhost:8080", "base return adress")
 	flag.StringVar(&conf.LoggLevel, "l", "Info", "logging level")
-	flag.StringVar(&conf.FilePath, "f", "", "base return adress")
-	flag.StringVar(&conf.DbAddress, "d", "host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable", "base return adress")
+	flag.StringVar(&conf.FilePath, "f", "./storage.txt", "storage file path")
+	flag.StringVar(&conf.DBAddress, "d", "", "database address") //"host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
 	flag.Parse()
 
 	err := env.Parse(&conf)

@@ -21,7 +21,7 @@ import (
 var conf = config.InitConfTests()
 var dt = inmemory.NewData()
 var fl, _ = files.NewFiles(conf.FilePath, dt)
-var hd = NewHandlersData(dt, conf.BaseAdr, fl, conf.DbAddress)
+var hd = NewHandlersData(dt, conf.BaseAdr, fl, conf.DBAddress)
 
 func TestPostAddr(t *testing.T) {
 	type want struct {
