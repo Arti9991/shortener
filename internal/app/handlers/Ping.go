@@ -16,7 +16,7 @@ func Ping(hd *handlersData) http.HandlerFunc {
 		// 	res.WriteHeader(http.StatusBadRequest)
 		// 	return
 		// }
-		db, err := sql.Open("pgx", hd.DBInfo)
+		db, err := sql.Open("pgx", hd.DataBase.DBInfo)
 		if err != nil {
 			logger.Log.Info("Error in opening database!", zap.Error(err))
 			res.WriteHeader(http.StatusInternalServerError)

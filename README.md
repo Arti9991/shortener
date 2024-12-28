@@ -49,3 +49,9 @@ Get запрос для извлечения ссылки в заголовке 
 ```
 curl -v GET -H "Content-Type: text/plain" http://localhost:8080/<id>
 ```
+
+Ping запрос для проверки подключения к базе данных:
+
+```
+curl -v GET http://localhost:8080/ping
+```

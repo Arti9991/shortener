@@ -30,6 +30,11 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 			logger.Log.Info("Error in FileSave", zap.Error(err))
 		}
 
+		err = hd.DataBase.DBsave(hashStr, string(body))
+		if err != nil {
+			logger.Log.Info("Error in DBsave", zap.Error(err))
+		}
+
 		ansStr := hd.BaseAdr + "/" + hashStr
 
 		res.Header().Set("content-type", "text/plain")

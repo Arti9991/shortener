@@ -38,11 +38,16 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 
 		hashStr := randomString(8)
 		hd.dt.AddValue(hashStr, IncomeURL.URL)
+
 		err = hd.Files.FileSave(hashStr, IncomeURL.URL)
 		if err != nil {
 			logger.Log.Info("Error in FileSave", zap.Error(err))
 		}
 
+		err = hd.DataBase.DBsave(hashStr, IncomeURL.URL)
+		if err != nil {
+			logger.Log.Info("Error in DBsave", zap.Error(err))
+		}
 		OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
 
 		out, err := json.Marshal(OutURL)

@@ -16,16 +16,23 @@ func GetAddr(hd *handlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		var err error
 
 		ident := path.Base(req.URL.String())
 		redir := hd.dt.GetURL(ident)
 
 		if redir == "" {
-			logger.Log.Info("There is no such identifier!", zap.String("ID", ident))
-			res.WriteHeader(http.StatusBadRequest)
-			return
+			redir, err = hd.DataBase.DBget(ident)
+			if err != nil {
+				logger.Log.Info("Error im GET method!", zap.String("ID", ident))
+				res.WriteHeader(http.StatusBadRequest)
+				return
+			} else if redir == "" {
+				logger.Log.Info("There is no such identifier!", zap.String("ID", ident))
+				res.WriteHeader(http.StatusBadRequest)
+				return
+			}
 		}
-
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)
 		//logger.Log.Info("Response status is 307 TemporaryRedirect.", zap.String("location", res.Header().Get("Location")), zap.Int("size", len(redir)))
