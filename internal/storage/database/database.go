@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/Arti9991/shortener/internal/logger"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -18,7 +19,7 @@ var QuerryGet = `SELECT income_url
 	FROM urls WHERE hash_id = $1 LIMIT 1;`
 
 type DBStor struct {
-	Db      *sql.DB
+	DB      *sql.DB
 	DBInfo  string
 	inFiles bool
 }
@@ -29,25 +30,23 @@ func DBinit(DBInfo string) (*DBStor, error) {
 
 	db.DBInfo = DBInfo
 
-	db.Db, err = sql.Open("pgx", DBInfo)
+	db.DB, err = sql.Open("pgx", DBInfo)
 	if err != nil || DBInfo == "" {
 		return &DBStor{inFiles: true}, err
 	}
-	defer db.Db.Close()
-	if err = db.Db.Ping(); err != nil {
+	defer db.DB.Close()
+	if err = db.DB.Ping(); err != nil {
 		return &DBStor{inFiles: true}, err
 	}
-	fmt.Println("✓ connected to ShortURL db")
 
-	res, err := db.Db.Exec(QuerryCreate)
+	res, err := db.DB.Exec(QuerryCreate)
 	if err != nil {
 		return &DBStor{inFiles: true}, err
 	}
 	fmt.Println(res)
-	fmt.Println("✓ Table created")
+	logger.Log.Info("✓ connected to ShortURL db! ✓ Table created!")
 	db.inFiles = false
 	return &db, nil
-
 }
 
 func (db *DBStor) DBsave(key string, val string) error {
@@ -57,14 +56,14 @@ func (db *DBStor) DBsave(key string, val string) error {
 
 	var err error
 
-	db.Db, err = sql.Open("pgx", db.DBInfo)
+	db.DB, err = sql.Open("pgx", db.DBInfo)
 	if err != nil {
 		db.inFiles = true
 		return err
 	}
-	defer db.Db.Close()
+	defer db.DB.Close()
 
-	res, err := db.Db.Exec(QuerrySave, key, val)
+	res, err := db.DB.Exec(QuerrySave, key, val)
 	if err != nil {
 		db.inFiles = true
 		return err
@@ -81,14 +80,14 @@ func (db *DBStor) DBget(key string) (string, error) {
 	var err error
 	var val string
 
-	db.Db, err = sql.Open("pgx", db.DBInfo)
+	db.DB, err = sql.Open("pgx", db.DBInfo)
 	if err != nil {
 		db.inFiles = true
 		return "", err
 	}
-	defer db.Db.Close()
+	defer db.DB.Close()
 
-	row := db.Db.QueryRow(QuerryGet, key)
+	row := db.DB.QueryRow(QuerryGet, key)
 	err = row.Scan(&val)
 	if err != nil {
 		return "", err
