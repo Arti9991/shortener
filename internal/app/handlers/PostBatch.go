@@ -27,11 +27,11 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 		}
 
 		IncomeURL := &struct {
-			Corr_ID string `json:"correlation_id"`
-			URL     string `json:"url"`
+			CorrID string `json:"correlation_id"`
+			URL    string `json:"url"`
 		}{}
 		OutURL := &struct {
-			Corr_ID  string `json:"correlation_id"`
+			CorrID   string `json:"correlation_id"`
 			ShortURL string `json:"short_url"`
 		}{}
 		var OutBuff []byte
@@ -47,7 +47,13 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 		// }
 		// defer stmt.Close()
 		dec := json.NewDecoder(req.Body)
-		for {
+		if _, err := dec.Token(); err != nil {
+			logger.Log.Info("Bad request body", zap.Error(err))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		for dec.More() {
 			err := dec.Decode(&IncomeURL)
 			if err == io.EOF {
 				break
@@ -78,7 +84,7 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			// }
 
 			OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
-			OutURL.Corr_ID = IncomeURL.Corr_ID
+			OutURL.CorrID = IncomeURL.CorrID
 
 			tmp, err := json.Marshal(OutURL)
 			if err != nil {
