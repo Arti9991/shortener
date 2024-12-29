@@ -126,6 +126,36 @@ func (db *DBStor) DBsaveTx(key string, val string) error {
 	return tx.Commit()
 }
 
+// func (db *DBStor) DBgetTx(key string) (string, error) {
+// 	if db.InFiles {
+// 		return "", nil
+// 	}
+
+// 	var err error
+// 	var val string
+
+// 	db.DB, err = sql.Open("pgx", db.DBInfo)
+// 	if err != nil {
+// 		db.InFiles = true
+// 		return "", err
+// 	}
+// 	defer db.DB.Close()
+
+// 	tx, err := db.DB.Begin()
+// 	if err != nil {
+// 		db.InFiles = true
+// 		return "", err
+// 	}
+
+// 	row := tx.QueryRow(QuerryGet, key)
+// 	err = row.Scan(&val)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	fmt.Println(val)
+// 	return val, tx.Rollback()
+// }
+
 // func (db *DBStor) DBsaveMany(decoder *json.Decoder, hashStr string) ([]byte, error) {
 // 	if db.InFiles {
 // 		return nil, nil

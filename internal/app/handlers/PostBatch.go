@@ -15,10 +15,7 @@ type OutURL struct {
 	ShortURL string `json:"short_url"`
 }
 
-// var QuerryPrepare = `INSERT INTO urls (id, hash_id, income_url)
-// 	VALUES  (DEFAULT, $1, $2);`
-
-// хэндлер создания укороченного URL в формате JSON
+// хэндлер создания укороченных URL для массива JSON
 func PostBatch(hd *handlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
@@ -34,21 +31,10 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 
 		IncomeURL := &struct {
 			CorrID string `json:"correlation_id"`
-			URL    string `json:"url"`
+			URL    string `json:"original_url"`
 		}{}
 		var OutBuff []OutURL
 
-		// var stmt *sql.Stmt
-		// var err error
-
-		// if !hd.DataBase.InFiles {
-		// 	stmt, err = hd.DataBase.DB.Prepare(QuerryPrepare)
-		// 	if err != nil {
-		// 		logger.Log.Info("Error in DB prepare", zap.Error(err))
-		// 		hd.DataBase.InFiles = true
-		// 	}
-		// }
-		// defer stmt.Close()
 		dec := json.NewDecoder(req.Body)
 		if _, err := dec.Token(); err != nil {
 			logger.Log.Info("Bad request body", zap.Error(err))
@@ -65,7 +51,7 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
-
+			fmt.Println(IncomeURL)
 			hashStr := randomString(8)
 			hd.dt.AddValue(hashStr, IncomeURL.URL)
 
@@ -78,13 +64,7 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			if err != nil {
 				logger.Log.Info("Error in DBsave", zap.Error(err))
 			}
-			// if !hd.DataBase.InFiles {
-			// 	_, err := stmt.Exec(hashStr, IncomeURL.URL)
-			// 	if err != nil {
-			// 		logger.Log.Info("Error in DB Save", zap.Error(err))
-			// 		hd.DataBase.InFiles = true
-			// 	}
-			// }
+
 			var OutURL OutURL
 			OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
 			OutURL.CorrID = IncomeURL.CorrID
