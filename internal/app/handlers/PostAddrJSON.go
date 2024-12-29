@@ -25,7 +25,7 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 		IncomeURL := &struct {
 			URL string `json:"url"`
 		}{}
-		OutURL := &struct {
+		OutcomeURL := &struct {
 			ShortURL string `json:"result"`
 		}{}
 
@@ -49,9 +49,9 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 			logger.Log.Info("Error in DBsave", zap.Error(err))
 		}
 
-		OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
+		OutcomeURL.ShortURL = hd.BaseAdr + "/" + hashStr
 
-		out, err := json.Marshal(OutURL)
+		out, err := json.Marshal(OutcomeURL)
 		if err != nil {
 			logger.Log.Info("Wrong responce body", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)

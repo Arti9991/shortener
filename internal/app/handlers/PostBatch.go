@@ -10,6 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
+type OutURL struct {
+	CorrID   string `json:"correlation_id"`
+	ShortURL string `json:"short_url"`
+}
+
 // var QuerryPrepare = `INSERT INTO urls (id, hash_id, income_url)
 // 	VALUES  (DEFAULT, $1, $2);`
 
@@ -31,11 +36,8 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			CorrID string `json:"correlation_id"`
 			URL    string `json:"url"`
 		}{}
-		OutURL := &struct {
-			CorrID   string `json:"correlation_id"`
-			ShortURL string `json:"short_url"`
-		}{}
-		var OutBuff []byte
+		var OutBuff []OutURL
+
 		// var stmt *sql.Stmt
 		// var err error
 
@@ -83,22 +85,21 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			// 		hd.DataBase.InFiles = true
 			// 	}
 			// }
-
+			var OutURL OutURL
 			OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
 			OutURL.CorrID = IncomeURL.CorrID
 
-			tmp, err := json.Marshal(OutURL)
-			if err != nil {
-				logger.Log.Info("Wrong responce body", zap.Error(err))
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			OutBuff = append(OutBuff, tmp...)
-			fmt.Println(string(OutBuff))
+			OutBuff = append(OutBuff, OutURL)
+			fmt.Println(OutBuff)
 		}
-
+		out, err := json.Marshal(OutBuff)
+		if err != nil {
+			logger.Log.Info("Wrong responce body", zap.Error(err))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		res.Header().Set("content-type", "application/json")
 		res.WriteHeader(http.StatusCreated)
-		res.Write(OutBuff)
+		res.Write(out)
 	}
 }
