@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -93,6 +94,7 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 				return
 			}
 			OutBuff = append(OutBuff, tmp...)
+			fmt.Println(string(OutBuff))
 		}
 
 		res.Header().Set("content-type", "application/json")
