@@ -44,7 +44,7 @@ func NewServer() (*Server, error) {
 	}
 	Serv.DataBase, err = database.DBinit(Serv.Config.DBAddress)
 	if err != nil {
-		logger.Log.Info("Error while connecting to database! Setting file or inmemory mode!", zap.Error(err))
+		logger.Log.Info("Error while connecting to database! Setting file or inmemory mode!", zap.Error(err)) //, zap.String("Conf for DB", Serv.Config.DBAddress))
 	}
 
 	return &Serv, nil
@@ -56,9 +56,10 @@ func (s *Server) MainRouter() chi.Router {
 
 	rt := chi.NewRouter()
 	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddr(hd))))
-	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddrJSON(hd))))
 	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.GetAddr(hd))))
 	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.Ping(hd))))
+	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddrJSON(hd))))
+	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostBatch(hd))))
 
 	return rt
 }

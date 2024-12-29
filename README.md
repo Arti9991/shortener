@@ -55,3 +55,6 @@ Ping запрос для проверки подключения к базе д�
 ```
 curl -v GET http://localhost:8080/ping
 ```
+
+"{\"correlation_id\":\"ID\",\"url\":\"www.ya.ru\"}"
+curl -v -X POST -H "Content-Type: application/json" -d "{\"correlation_id\":\"ID\",\"url\":\"www.ya.ru\"}" http://localhost:8082/api/shorten/batch

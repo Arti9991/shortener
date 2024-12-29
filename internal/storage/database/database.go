@@ -21,7 +21,7 @@ var QuerryGet = `SELECT income_url
 type DBStor struct {
 	DB      *sql.DB
 	DBInfo  string
-	inFiles bool
+	InFiles bool
 }
 
 func DBinit(DBInfo string) (*DBStor, error) {
@@ -32,25 +32,25 @@ func DBinit(DBInfo string) (*DBStor, error) {
 
 	db.DB, err = sql.Open("pgx", DBInfo)
 	if err != nil || DBInfo == "" {
-		return &DBStor{inFiles: true}, err
+		return &DBStor{InFiles: true}, err
 	}
 	defer db.DB.Close()
 	if err = db.DB.Ping(); err != nil {
-		return &DBStor{inFiles: true}, err
+		return &DBStor{InFiles: true}, err
 	}
 
 	res, err := db.DB.Exec(QuerryCreate)
 	if err != nil {
-		return &DBStor{inFiles: true}, err
+		return &DBStor{InFiles: true}, err
 	}
 	fmt.Println(res)
-	logger.Log.Info("✓ connected to ShortURL db! ✓ Table created!")
-	db.inFiles = false
+	logger.Log.Info("✓ connected to ShortURL db!")
+	db.InFiles = false
 	return &db, nil
 }
 
 func (db *DBStor) DBsave(key string, val string) error {
-	if db.inFiles {
+	if db.InFiles {
 		return nil
 	}
 
@@ -58,14 +58,14 @@ func (db *DBStor) DBsave(key string, val string) error {
 
 	db.DB, err = sql.Open("pgx", db.DBInfo)
 	if err != nil {
-		db.inFiles = true
+		db.InFiles = true
 		return err
 	}
 	defer db.DB.Close()
 
 	res, err := db.DB.Exec(QuerrySave, key, val)
 	if err != nil {
-		db.inFiles = true
+		db.InFiles = true
 		return err
 	}
 	fmt.Println(res)
@@ -73,7 +73,7 @@ func (db *DBStor) DBsave(key string, val string) error {
 }
 
 func (db *DBStor) DBget(key string) (string, error) {
-	if db.inFiles {
+	if db.InFiles {
 		return "", nil
 	}
 
@@ -82,7 +82,7 @@ func (db *DBStor) DBget(key string) (string, error) {
 
 	db.DB, err = sql.Open("pgx", db.DBInfo)
 	if err != nil {
-		db.inFiles = true
+		db.InFiles = true
 		return "", err
 	}
 	defer db.DB.Close()
@@ -95,3 +95,89 @@ func (db *DBStor) DBget(key string) (string, error) {
 	fmt.Println(val)
 	return val, nil
 }
+
+func (db *DBStor) DBsaveTx(key string, val string) error {
+	if db.InFiles {
+		return nil
+	}
+
+	var err error
+
+	db.DB, err = sql.Open("pgx", db.DBInfo)
+	if err != nil {
+		db.InFiles = true
+		return err
+	}
+	defer db.DB.Close()
+
+	tx, err := db.DB.Begin()
+	if err != nil {
+		db.InFiles = true
+		return err
+	}
+
+	res, err := tx.Exec(QuerrySave, key, val)
+	if err != nil {
+		tx.Rollback()
+		db.InFiles = true
+		return err
+	}
+	fmt.Println(res)
+	return tx.Commit()
+}
+
+// func (db *DBStor) DBsaveMany(decoder *json.Decoder, hashStr string) ([]byte, error) {
+// 	if db.InFiles {
+// 		return nil, nil
+// 	}
+// 	var OutBuff []byte
+// 	IncomeURL := &struct {
+// 		Corr_id string `json:"correlation_id"`
+// 		URL     string `json:"url"`
+// 	}{}
+// 	OutURL := &struct {
+// 		Corr_id  string `json:"correlation_id"`
+// 		ShortURL string `json:"short_url"`
+// 	}{}
+
+// 	stmt, err := db.DB.Prepare(QuerrySave)
+// 	if err != nil {
+// 		db.InFiles = true
+// 		return nil, err
+// 	}
+// 	defer stmt.Close()
+
+// 	for {
+// 		err := decoder.Decode(&IncomeURL)
+// 		if err == io.EOF {
+// 			break
+// 		} else if err != nil {
+// 			return nil, err
+// 		}
+
+// 		// hd.dt.AddValue(hashStr, IncomeURL.URL)
+
+// 		// err = hd.Files.FileSave(hashStr, IncomeURL.URL)
+// 		// if err != nil {
+// 		// 	logger.Log.Info("Error in FileSave", zap.Error(err))
+// 		// }
+
+// 		if !hd.DataBase.InFiles {
+// 			_, err := stmt.Exec(hashStr, IncomeURL.URL)
+// 			if err != nil {
+// 				logger.Log.Info("Error in DB Save", zap.Error(err))
+// 				hd.DataBase.InFiles = true
+// 			}
+// 		}
+
+// 		OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
+// 		OutURL.Corr_id = IncomeURL.Corr_id
+// 		tmp, err := json.Marshal(OutURL)
+// 		if err != nil {
+// 			logger.Log.Info("Wrong responce body", zap.Error(err))
+// 			res.WriteHeader(http.StatusBadRequest)
+// 			return
+// 		}
+// 		OutBuff = append(OutBuff, tmp...)
+// 	}
+// }

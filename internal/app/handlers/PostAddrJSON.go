@@ -48,6 +48,7 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 		if err != nil {
 			logger.Log.Info("Error in DBsave", zap.Error(err))
 		}
+
 		OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
 
 		out, err := json.Marshal(OutURL)
