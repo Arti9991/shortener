@@ -7,18 +7,20 @@ import (
 	"github.com/Arti9991/shortener/internal/app/cmpgzip"
 	"github.com/Arti9991/shortener/internal/app/handlers"
 	"github.com/Arti9991/shortener/internal/config"
-	"github.com/Arti9991/shortener/internal/files"
 	"github.com/Arti9991/shortener/internal/logger"
-	"github.com/Arti9991/shortener/internal/storage"
+	"github.com/Arti9991/shortener/internal/storage/database"
+	"github.com/Arti9991/shortener/internal/storage/files"
+	"github.com/Arti9991/shortener/internal/storage/inmemory"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/rand"
 )
 
 type Server struct {
-	Storage *storage.Data
-	Config  config.Config
-	Files   *files.FileData
+	Storage  *inmemory.Data
+	Config   config.Config
+	Files    *files.FileData
+	DataBase *database.DBStor
 }
 
 // инциализация всех необходимых струткур
@@ -34,11 +36,15 @@ func NewServer() (*Server, error) {
 		return nil, err
 	}
 	// инциализация хранилища в памяти
-	Serv.Storage = storage.NewData()
+	Serv.Storage = inmemory.NewData()
 	// инциализация структуры для файлов
 	Serv.Files, err = files.NewFiles(Serv.Config.FilePath, Serv.Storage)
 	if err != nil {
-		logger.Log.Info("Error in creating or file! Setting in memory mode!", zap.Error(err))
+		logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err))
+	}
+	Serv.DataBase, err = database.DBinit(Serv.Config.DBAddress)
+	if err != nil {
+		logger.Log.Info("Error while connecting to database! Setting file or inmemory mode!", zap.Error(err)) //, zap.String("Conf for DB", Serv.Config.DBAddress))
 	}
 
 	return &Serv, nil
@@ -46,12 +52,14 @@ func NewServer() (*Server, error) {
 
 // создание роутера chi для хэндлеров
 func (s *Server) MainRouter() chi.Router {
-	hd := handlers.NewHandlersData(s.Storage, s.Config.BaseAdr, s.Files)
+	hd := handlers.NewHandlersData(s.Storage, s.Config.BaseAdr, s.Files, s.DataBase)
 
 	rt := chi.NewRouter()
 	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddr(hd))))
-	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddrJSON(hd))))
 	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.GetAddr(hd))))
+	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.Ping(hd))))
+	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddrJSON(hd))))
+	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostBatch(hd))))
 
 	return rt
 }
