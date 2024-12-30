@@ -59,11 +59,14 @@ curl -v GET http://localhost:8080/ping
 Ручной запрос для проверки множественного пост
 ```
 curl -v -X POST -H "Content-Type: application/json" -d '[
-{"correlation_id":"ID","url":"www.ya.ru"},
-{"correlation_id":"ID","url":"www.dlya.ru"}]' http://localhost:8082/api/shorten/batch
+{"correlation_id":"ID","original_url":"www.ya.ru"},
+{"correlation_id":"ID","original_url":"www.dlya.ru"},
+{"correlation_id":"ID","original_url":"www.Nya.ru"},
+{"correlation_id":"ID","original_url":"www.Qya.ru"},
+{"correlation_id":"ID","original_url":"www.Mya.ru"}]' http://localhost:8082/api/shorten/batch
 ```
 
-запуск тестов для iter12
+запуск тестов для iter12 из под GitBash
 ```
 shortenertest -test.v -test.run=^TestIteration12$ -binary-path=cmd/shortener/shortener -database-dsn="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
 ```
