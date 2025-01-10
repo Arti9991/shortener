@@ -47,6 +47,26 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 		err = hd.DataBase.DBsave(hashStr, IncomeURL.URL)
 		if err != nil {
 			logger.Log.Info("Error in DBsave", zap.Error(err))
+			if hd.DataBase.CodeIsUniqueViolation(err) {
+				logger.Log.Info("URL already exicts! Getting shorten version")
+				hashStr, err2 := hd.DataBase.DBgetOrig(IncomeURL.URL)
+				if err2 != nil {
+					logger.Log.Info("Error in GetOrig", zap.Error(err2))
+				}
+				OutcomeURL.ShortURL = hd.BaseAdr + "/" + hashStr
+
+				out, err := json.Marshal(OutcomeURL)
+				if err != nil {
+					logger.Log.Info("Wrong responce body", zap.Error(err))
+					res.WriteHeader(http.StatusBadRequest)
+					return
+				}
+
+				res.Header().Set("content-type", "application/json")
+				res.WriteHeader(http.StatusConflict)
+				res.Write(out)
+				return
+			}
 		}
 
 		OutcomeURL.ShortURL = hd.BaseAdr + "/" + hashStr

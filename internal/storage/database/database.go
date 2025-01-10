@@ -3,20 +3,24 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
     hash_id 	VARCHAR(8),
-    income_url VARCHAR(100)
+    income_url VARCHAR(100) NOT NULL UNIQUE
 	);`
 var QuerrySave = `INSERT INTO urls (id, hash_id, income_url)
 	VALUES  (DEFAULT, $1, $2);`
 var QuerryGet = `SELECT income_url
 	FROM urls WHERE hash_id = $1 LIMIT 1;`
+var QuerryGetOrig = `SELECT hash_id
+	FROM urls WHERE income_url = $1 LIMIT 1;`
 
 type DBStor struct {
 	DB      *sql.DB
@@ -65,8 +69,13 @@ func (db *DBStor) DBsave(key string, val string) error {
 
 	res, err := db.DB.Exec(QuerrySave, key, val)
 	if err != nil {
-		db.InFiles = true
-		return err
+		if db.CodeIsUniqueViolation(err) {
+			//fmt.Println("YES")
+			return err
+		} else {
+			db.InFiles = true
+			return err
+		}
 	}
 	fmt.Println(res)
 	return nil
@@ -94,6 +103,26 @@ func (db *DBStor) DBget(key string) (string, error) {
 	}
 	fmt.Println(val)
 	return val, nil
+}
+
+func (db *DBStor) DBgetOrig(val string) (string, error) {
+	var err error
+	var key string
+
+	db.DB, err = sql.Open("pgx", db.DBInfo)
+	if err != nil {
+		db.InFiles = true
+		return "", err
+	}
+	defer db.DB.Close()
+
+	row := db.DB.QueryRow(QuerryGetOrig, val)
+	err = row.Scan(&key)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(key)
+	return key, nil
 }
 
 func (db *DBStor) DBsaveTx(key string, val string) error {
@@ -124,6 +153,18 @@ func (db *DBStor) DBsaveTx(key string, val string) error {
 	}
 	fmt.Println(res)
 	return tx.Commit()
+}
+
+func (db *DBStor) CodeIsUniqueViolation(err error) bool {
+	strErr := fmt.Sprintf("%s", err)
+	arrErr := strings.Split(strErr, "(SQLSTATE")
+	if len(arrErr) < 2 {
+		return false
+	}
+	arrErr[1], _ = strings.CutSuffix(arrErr[1], ")")
+	arrErr[1], _ = strings.CutPrefix(arrErr[1], " ")
+	fmt.Println(arrErr[1])
+	return arrErr[1] == pgerrcode.UniqueViolation
 }
 
 // func (db *DBStor) DBgetTx(key string) (string, error) {

@@ -36,24 +36,24 @@ git fetch template && git checkout template/main .github
 Стартовый POST запрос в cURL:
 
 ```
-curl -v -X POST -H "Content-Type: text/plain" -d www.ya.ru http://localhost:8080
+curl -v -X POST -H "Content-Type: text/plain" -d www.ya.ru http://localhost:8082
 ```
 
 POST запрос c JSON в cURL:
 ```
-curl -v -X POST -H "Content-Type: application/json" -d "{\"url\":\"www.ya.ru\"}" http://localhost:8080/api/shorten
+curl -v -X POST -H "Content-Type: application/json" -d "{\"url\":\"www.ya.ru\"}" http://localhost:8082/api/shorten
 ```
 
 Get запрос для извлечения ссылки в заголовке location:
 
 ```
-curl -v GET -H "Content-Type: text/plain" http://localhost:8080/<id>
+curl -v GET -H "Content-Type: text/plain" http://localhost:8082/<id>
 ```
 
 Ping запрос для проверки подключения к базе данных:
 
 ```
-curl -v GET http://localhost:8080/ping
+curl -v GET http://localhost:8082/ping
 ```
 
 Ручной запрос для проверки множественного пост

@@ -33,6 +33,19 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 		err = hd.DataBase.DBsave(hashStr, string(body))
 		if err != nil {
 			logger.Log.Info("Error in DBsave", zap.Error(err))
+			if hd.DataBase.CodeIsUniqueViolation(err) {
+				logger.Log.Info("URL already exicts! Getting shorten version")
+				hashStr, err2 := hd.DataBase.DBgetOrig(string(body))
+				if err2 != nil {
+					logger.Log.Info("Error in GetOrig", zap.Error(err2))
+				}
+				ansStr := hd.BaseAdr + "/" + hashStr
+
+				res.Header().Set("content-type", "text/plain")
+				res.WriteHeader(http.StatusConflict)
+				res.Write([]byte(ansStr))
+				return
+			}
 		}
 
 		ansStr := hd.BaseAdr + "/" + hashStr
