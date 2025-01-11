@@ -38,6 +38,8 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 				hashStr, err2 := hd.DataBase.DBgetOrig(string(body))
 				if err2 != nil {
 					logger.Log.Info("Error in GetOrig", zap.Error(err2))
+					res.WriteHeader(http.StatusBadRequest)
+					return
 				}
 				ansStr := hd.BaseAdr + "/" + hashStr
 
@@ -53,6 +55,5 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(ansStr))
-		//logger.Log.Info("Response status is 201 Created. Response body size", zap.Int("size", len([]byte(ansStr))))
 	}
 }

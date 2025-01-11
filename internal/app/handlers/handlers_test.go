@@ -146,7 +146,6 @@ func TestPostAddrJSON(t *testing.T) {
 			err := json.NewDecoder(result.Body).Decode(&ResURL)
 			require.NoError(t, err)
 
-			//fmt.Println(ResURL.Result)
 			strResult := string(ResURL.Result)
 
 			res, _ := strings.CutPrefix(strResult, "http://example.com/")
@@ -334,6 +333,106 @@ func TestMultuplTasks(t *testing.T) {
 				require.NoError(t, err)
 
 			}
+		})
+	}
+}
+
+func TestPostBatch(t *testing.T) {
+	type want struct {
+		statusCode  int
+		contentType string
+		answers     []string
+	}
+	tests := []struct {
+		name    string
+		request string
+		income  string
+		want    want
+	}{
+		{
+			name:    "Multiple requests in one JSON for code 201",
+			request: "/api/shorten/batch",
+			income: `[
+							{
+								"correlation_id": "ID",
+								"original_url": "www.ya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.dlya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.Nya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.Qya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.Mya.ru"
+							}
+						]`,
+			want: want{
+				statusCode:  201,
+				contentType: "application/json",
+				answers: []string{
+					"www.ya.ru",
+					"www.dlya.ru",
+					"www.Nya.ru",
+					"www.Qya.ru",
+					"www.Mya.ru",
+				},
+			},
+		},
+		{
+			name:    "One request in JSON for code 201",
+			request: "/api/shorten/batch",
+			income: `[
+							{
+								"correlation_id": "ID",
+								"original_url": "www.ya.ru"
+							}
+						]`,
+			want: want{
+				statusCode:  201,
+				contentType: "application/json",
+				answers: []string{
+					"www.ya.ru",
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			ResURL := []struct {
+				CorrID   string `json:"correlation_id"`
+				ShortURL string `json:"short_url"`
+			}{}
+			request := httptest.NewRequest(http.MethodPost, test.request, bytes.NewBuffer([]byte(test.income)))
+			request.Header.Add("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(PostBatch(hd))
+			h(w, request)
+
+			result := w.Result()
+			assert.Equal(t, test.want.statusCode, result.StatusCode)
+			assert.Equal(t, test.want.contentType, result.Header.Get("Content-Type"))
+
+			err := json.NewDecoder(result.Body).Decode(&ResURL)
+			require.NoError(t, err)
+
+			for i := range len(ResURL) {
+
+				strResult := string(ResURL[i].ShortURL)
+
+				res, _ := strings.CutPrefix(strResult, "http://example.com/")
+				assert.Equal(t, test.want.answers[i], hd.dt.ShortUrls[res])
+			}
+			err = result.Body.Close()
+			require.NoError(t, err)
 		})
 	}
 }

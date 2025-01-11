@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -51,7 +50,7 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			fmt.Println(IncomeURL)
+
 			hashStr := randomString(8)
 			hd.dt.AddValue(hashStr, IncomeURL.URL)
 
@@ -70,7 +69,6 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			OutURL.CorrID = IncomeURL.CorrID
 
 			OutBuff = append(OutBuff, OutURL)
-			fmt.Println(OutBuff)
 		}
 		out, err := json.Marshal(OutBuff)
 		if err != nil {

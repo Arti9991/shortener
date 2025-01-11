@@ -52,6 +52,8 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 				hashStr, err2 := hd.DataBase.DBgetOrig(IncomeURL.URL)
 				if err2 != nil {
 					logger.Log.Info("Error in GetOrig", zap.Error(err2))
+					res.WriteHeader(http.StatusBadRequest)
+					return
 				}
 				OutcomeURL.ShortURL = hd.BaseAdr + "/" + hashStr
 
