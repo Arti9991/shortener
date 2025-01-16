@@ -156,6 +156,20 @@ func (db *DBStor) DBsaveTx(key string, val string) error {
 	return tx.Commit()
 }
 
+// проверка соединения с базой данных
+func (db *DBStor) Ping() error {
+	var err error
+	db.DB, err = sql.Open("pgx", db.DBInfo)
+	if err != nil {
+		return err
+	}
+	defer db.DB.Close()
+	if err = db.DB.Ping(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *DBStor) CodeIsUniqueViolation(err error) bool {
 	strErr := fmt.Sprintf("%s", err)
 	arrErr := strings.Split(strErr, "(SQLSTATE")
