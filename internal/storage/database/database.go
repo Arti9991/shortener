@@ -2,12 +2,16 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"golang.org/x/exp/rand"
 )
 
 var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
@@ -39,7 +43,6 @@ func DBinit(DBInfo string) (*DBStor, error) {
 	if err != nil || DBInfo == "" {
 		return &DBStor{InFiles: true}, err
 	}
-	defer db.DB.Close()
 	if err = db.DB.Ping(); err != nil {
 		return &DBStor{InFiles: true}, err
 	}
@@ -60,13 +63,6 @@ func (db *DBStor) DBsave(key string, val string) error {
 	}
 
 	var err error
-
-	db.DB, err = sql.Open("pgx", db.DBInfo)
-	if err != nil {
-		db.InFiles = true
-		return err
-	}
-	defer db.DB.Close()
 
 	_, err = db.DB.Exec(QuerrySave, key, val)
 	if err != nil {
@@ -89,13 +85,6 @@ func (db *DBStor) DBget(key string) (string, error) {
 	var err error
 	var val string
 
-	db.DB, err = sql.Open("pgx", db.DBInfo)
-	if err != nil {
-		db.InFiles = true
-		return "", err
-	}
-	defer db.DB.Close()
-
 	row := db.DB.QueryRow(QuerryGet, key)
 	err = row.Scan(&val)
 	if err != nil {
@@ -110,13 +99,6 @@ func (db *DBStor) DBgetOrig(val string) (string, error) {
 	var err error
 	var key string
 
-	db.DB, err = sql.Open("pgx", db.DBInfo)
-	if err != nil {
-		db.InFiles = true
-		return "", err
-	}
-	defer db.DB.Close()
-
 	row := db.DB.QueryRow(QuerryGetOrig, val)
 	err = row.Scan(&key)
 	if err != nil {
@@ -127,42 +109,70 @@ func (db *DBStor) DBgetOrig(val string) (string, error) {
 
 // сохранение значений в таблицу при помощи транзакций
 // (для случая с большим количеством URL на входе)
-func (db *DBStor) DBsaveTx(key string, val string) error {
+func (db *DBStor) DBsaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, error) {
 	if db.InFiles {
-		return nil
+		return nil, nil
 	}
-
-	var err error
-
-	db.DB, err = sql.Open("pgx", db.DBInfo)
-	if err != nil {
-		db.InFiles = true
-		return err
-	}
-	defer db.DB.Close()
+	var IncomeURL models.BatchIncomeURL
+	var OutBuff models.OutBuff
 
 	tx, err := db.DB.Begin()
 	if err != nil {
 		db.InFiles = true
-		return err
+		return nil, err
+	}
+	for dec.More() {
+		err := dec.Decode(&IncomeURL)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		hashStr := randomString(8)
+		//inmemory.AddValue(hashStr, IncomeURL.URL)
+
+		// err = hd.Files.FileSave(hashStr, IncomeURL.URL)
+		// if err != nil {
+		// 	logger.Log.Info("Error in FileSave", zap.Error(err))
+		// }
+
+		_, err = tx.Exec(QuerrySave, hashStr, IncomeURL.URL)
+		if err != nil {
+			tx.Rollback()
+			db.InFiles = true
+			return nil, err
+		}
+
+		var OutURL models.BatchOutURL
+		OutURL.ShortURL = BaseAdr + "/" + hashStr
+		OutURL.CorrID = IncomeURL.CorrID
+
+		OutBuff = append(OutBuff, OutURL)
+	}
+	err = tx.Commit()
+	if err != nil {
+		db.InFiles = true
+		return nil, err
 	}
 
-	_, err = tx.Exec(QuerrySave, key, val)
-	if err != nil {
-		tx.Rollback()
-		db.InFiles = true
-		return err
-	}
-	return tx.Commit()
+	// tx, err := db.DB.Begin()
+	// if err != nil {
+	// 	db.InFiles = true
+	// 	return err
+	// }
+
+	// _, err = tx.Exec(QuerrySave, key, val)
+	// if err != nil {
+	// 	tx.Rollback()
+	// 	db.InFiles = true
+	// 	return err
+	// }
+	return OutBuff, nil
 }
 
 // проверка соединения с базой данных
 func (db *DBStor) Ping() error {
 	var err error
-	db.DB, err = sql.Open("pgx", db.DBInfo)
-	if err != nil {
-		return err
-	}
 	defer db.DB.Close()
 	if err = db.DB.Ping(); err != nil {
 		return err
@@ -172,11 +182,15 @@ func (db *DBStor) Ping() error {
 
 func (db *DBStor) CodeIsUniqueViolation(err error) bool {
 	strErr := fmt.Sprintf("%s", err)
-	arrErr := strings.Split(strErr, "(SQLSTATE")
-	if len(arrErr) < 2 {
-		return false
+	return strings.Contains(strErr, pgerrcode.UniqueViolation)
+}
+func randomString(n int) string {
+
+	var bt []byte
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	for range n {
+		bt = append(bt, charset[rand.Intn(len(charset))])
 	}
-	arrErr[1], _ = strings.CutSuffix(arrErr[1], ")")
-	arrErr[1], _ = strings.CutPrefix(arrErr[1], " ")
-	return arrErr[1] == pgerrcode.UniqueViolation
+
+	return string(bt)
 }

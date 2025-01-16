@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"go.uber.org/zap"
 )
 
@@ -22,12 +23,14 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 			return
 		}
 
-		IncomeURL := &struct {
-			URL string `json:"url"`
-		}{}
-		OutcomeURL := &struct {
-			ShortURL string `json:"result"`
-		}{}
+		var IncomeURL models.IncomeURL
+		var OutcomeURL models.OutcomeURL
+		// IncomeURL := &struct {
+		// 	URL string `json:"url"`
+		// }{}
+		// OutcomeURL := &struct {
+		// 	ShortURL string `json:"result"`
+		// }{}
 
 		err := json.NewDecoder(req.Body).Decode(&IncomeURL)
 		if err != nil {

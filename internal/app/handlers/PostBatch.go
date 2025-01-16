@@ -2,17 +2,16 @@ package handlers
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 
 	"github.com/Arti9991/shortener/internal/logger"
 	"go.uber.org/zap"
 )
 
-type OutURL struct {
-	CorrID   string `json:"correlation_id"`
-	ShortURL string `json:"short_url"`
-}
+// type OutURL struct {
+// 	CorrID   string `json:"correlation_id"`
+// 	ShortURL string `json:"short_url"`
+// }
 
 // хэндлер создания укороченных URL для массива JSON
 func PostBatch(hd *handlersData) http.HandlerFunc {
@@ -28,11 +27,13 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			return
 		}
 
-		IncomeURL := &struct {
-			CorrID string `json:"correlation_id"`
-			URL    string `json:"original_url"`
-		}{}
-		var OutBuff []OutURL
+		// var IncomeURL models.BatchIncomeURL
+		// var OutBuff models.OutBuff
+		// IncomeURL := &struct {
+		// 	CorrID string `json:"correlation_id"`
+		// 	URL    string `json:"original_url"`
+		// }{}
+		// var OutBuff []OutURL
 
 		dec := json.NewDecoder(req.Body)
 		if _, err := dec.Token(); err != nil {
@@ -41,35 +42,42 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			return
 		}
 
-		for dec.More() {
-			err := dec.Decode(&IncomeURL)
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				logger.Log.Info("Bad request body", zap.Error(err))
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
+		// for dec.More() {
+		// 	err := dec.Decode(&IncomeURL)
+		// 	if err == io.EOF {
+		// 		break
+		// 	} else if err != nil {
+		// 		logger.Log.Info("Bad request body", zap.Error(err))
+		// 		res.WriteHeader(http.StatusBadRequest)
+		// 		return
+		// 	}
 
-			hashStr := randomString(8)
-			hd.dt.AddValue(hashStr, IncomeURL.URL)
+		// 	hashStr := randomString(8)
+		// 	hd.dt.AddValue(hashStr, IncomeURL.URL)
 
-			err = hd.Files.FileSave(hashStr, IncomeURL.URL)
-			if err != nil {
-				logger.Log.Info("Error in FileSave", zap.Error(err))
-			}
+		// 	err = hd.Files.FileSave(hashStr, IncomeURL.URL)
+		// 	if err != nil {
+		// 		logger.Log.Info("Error in FileSave", zap.Error(err))
+		// 	}
 
-			err = hd.DataBase.DBsaveTx(hashStr, IncomeURL.URL)
-			if err != nil {
-				logger.Log.Info("Error in DBsave", zap.Error(err))
-			}
+		// 	err = hd.DataBase.DBsaveTx(hashStr, IncomeURL.URL)
+		// 	if err != nil {
+		// 		logger.Log.Info("Error in DBsave", zap.Error(err))
+		// 	}
 
-			var OutURL OutURL
-			OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
-			OutURL.CorrID = IncomeURL.CorrID
+		// 	var OutURL OutURL
+		// 	OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
+		// 	OutURL.CorrID = IncomeURL.CorrID
 
-			OutBuff = append(OutBuff, OutURL)
+		// 	OutBuff = append(OutBuff, OutURL)
+		// }
+		OutBuff, err := hd.DataBase.DBsaveTx(dec, hd.BaseAdr)
+		if err != nil {
+			logger.Log.Info("Error in DBsaveTx", zap.Error(err))
+			res.WriteHeader(http.StatusBadRequest)
+			return
 		}
+
 		out, err := json.Marshal(OutBuff)
 		if err != nil {
 			logger.Log.Info("Wrong responce body", zap.Error(err))
