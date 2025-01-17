@@ -30,19 +30,18 @@ var QuerryGetOrig = `SELECT hash_id
 
 type DBStor struct {
 	storage.StorFunc
-	file    *files.FileData
+	File    *files.FileData
 	DB      *sql.DB
 	DBInfo  string
 	InFiles bool // флаг, указывающий на характер хранения данных (true - хранение в файле)
 }
 
 // инициализация хранилища и создание/подключение к таблице
-func DBinit(DBInfo string, files *files.FileData) (*DBStor, error) {
+func DBinit(DBInfo string) (*DBStor, error) {
 	var db DBStor
 	var err error
 
 	db.DBInfo = DBInfo
-	db.file = files
 
 	db.DB, err = sql.Open("pgx", DBInfo)
 	if err != nil && DBInfo != "" {
@@ -88,7 +87,6 @@ func (db *DBStor) Get(key string) (string, error) {
 	if db.InFiles {
 		return "", nil
 	}
-
 	var err error
 	var val string
 
@@ -147,9 +145,9 @@ func (db *DBStor) SaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, err
 		}
 
 		//сохранение URL в файле
-		err = db.file.FileSave(hashStr, IncomeURL.URL)
+		err = db.File.FileSave(hashStr, IncomeURL.URL)
 		if err != nil {
-			logger.Log.Info("Error in safe to file")
+			logger.Log.Info("Error in safe to File")
 		}
 
 		var OutURL models.BatchOutURL

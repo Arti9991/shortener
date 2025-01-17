@@ -15,15 +15,15 @@ import (
 type Data struct {
 	storage.StorFunc
 	sync.Mutex
-	file      *files.FileData
+	File      *files.FileData
 	ShortUrls map[string]string
 }
 
 // инициализация карты для хранения пар:
 // ключ (сокращенный URL) - значение (исходный URL)
-func NewData(files *files.FileData) *Data {
+func NewData(file *files.FileData) *Data {
 	dt := make(map[string]string)
-	return &Data{file: files, ShortUrls: dt}
+	return &Data{File: file, ShortUrls: dt}
 }
 
 // добавление пары ключ (сокращенный URL) - значение (исходный URL)
@@ -81,9 +81,9 @@ func (d *Data) SaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, error)
 		}
 
 		// сохранение URL в файле
-		err = d.file.FileSave(hashStr, IncomeURL.URL)
+		err = d.File.FileSave(hashStr, IncomeURL.URL)
 		if err != nil {
-			logger.Log.Info("Error in safe to file")
+			logger.Log.Info("Error in safe to File")
 		}
 
 		var OutURL models.BatchOutURL

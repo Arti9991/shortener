@@ -38,6 +38,7 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 
 		hashStr := randomString(8)
 
+		// сохранение URL в память или в базу
 		err = hd.Dt.Save(hashStr, IncomeURL.URL)
 		if err != nil {
 			logger.Log.Info("Error in Save", zap.Error(err))

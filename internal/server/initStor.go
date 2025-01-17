@@ -15,40 +15,41 @@ import (
 )
 
 // функция инциализации хранилища с выбором редима хранения (в базе или в памяти)
-func (Serv *Server) StorInit() {
+func (s *Server) StorInit() {
 	var err1 error
 	var err2 error
 
 	// инциализация хранилища в базе данных
-	Serv.DataBase, err1 = database.DBinit(Serv.Config.DBAddress, Serv.Files)
+	s.DataBase, err1 = database.DBinit(s.Config.DBAddress)
 	if err1 == nil {
 		// ошибка нулевая, работа продолжается через БД
 		// инциализация структуры для файлов
-		Serv.Files, err2 = files.NewFiles(Serv.Config.FilePath, Serv.DataBase)
+		s.Files, err2 = files.NewFiles(s.Config.FilePath, s.DataBase)
 		if err2 != nil {
 			logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err2))
 		}
+		s.DataBase.File = s.Files
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под базу
-		Serv.hd = handlers.NewHandlersData(Serv.DataBase, Serv.Config.BaseAdr, Serv.Files)
+		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files)
 		return
 	} else {
 		//при инцииализации базы возникла ошибка, работа продолжается с внутренней памятью
 		logger.Log.Info("Error while connecting to database! Setting file or inmemory mode!", zap.Error(err1))
 		// инциализация структуры для файлов
-		Serv.Files, err2 = files.NewFiles(Serv.Config.FilePath, Serv.DataBase)
+		s.Files, err2 = files.NewFiles(s.Config.FilePath, s.DataBase)
 		if err2 != nil {
 			logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err2))
 		}
 		// инциализация хранилища в памяти
-		Serv.Inmemory = inmemory.NewData(Serv.Files)
+		s.Inmemory = inmemory.NewData(s.Files)
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под память
-		Serv.hd = handlers.NewHandlersData(Serv.Inmemory, Serv.Config.BaseAdr, Serv.Files)
+		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files)
 		return
 	}
 }
 
 // функция для чтения всех данных в файле и сохранения их в базу или память
-func (Serv *Server) FileRead(d *files.FileData) error {
+func (s *Server) FileRead(d *files.FileData) error {
 	// проверка флага на хранение данных в памяти
 	if d.InMemory {
 		return nil
@@ -78,7 +79,7 @@ func (Serv *Server) FileRead(d *files.FileData) error {
 			return err
 		}
 
-		err = Serv.hd.Dt.Save(fl.Shorturl, fl.Origurl)
+		err = s.hd.Dt.Save(fl.Shorturl, fl.Origurl)
 		if err != nil {
 			logger.Log.Info("Error in saving data!", zap.Error(err))
 			return err
