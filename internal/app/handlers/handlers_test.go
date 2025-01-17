@@ -178,8 +178,8 @@ func TestPostAddrJSON(t *testing.T) {
 
 			// res, _ := strings.CutPrefix(strResult, "http://example.com/")
 			// assert.Equal(t, test.want.answer, hd.Dt.ShortUrls[res])
-			// err = result.Body.Close()
-			// require.NoError(t, err)
+			err = result.Body.Close()
+			require.NoError(t, err)
 		})
 	}
 }
