@@ -3,15 +3,17 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
+	"github.com/Arti9991/shortener/internal/storage"
+	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"golang.org/x/exp/rand"
 )
 
 var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
@@ -27,22 +29,28 @@ var QuerryGetOrig = `SELECT hash_id
 	FROM urls WHERE income_url = $1 LIMIT 1;`
 
 type DBStor struct {
+	storage.StorFunc
+	file    *files.FileData
 	DB      *sql.DB
 	DBInfo  string
 	InFiles bool // флаг, указывающий на характер хранения данных (true - хранение в файле)
 }
 
 // инициализация хранилища и создание/подключение к таблице
-func DBinit(DBInfo string) (*DBStor, error) {
+func DBinit(DBInfo string, files *files.FileData) (*DBStor, error) {
 	var db DBStor
 	var err error
 
 	db.DBInfo = DBInfo
+	db.file = files
 
 	db.DB, err = sql.Open("pgx", DBInfo)
-	if err != nil || DBInfo == "" {
+	if err != nil && DBInfo != "" {
 		return &DBStor{InFiles: true}, err
+	} else if DBInfo == "" {
+		return &DBStor{InFiles: true}, errors.New("turning off data base mode by command dbinfo = _")
 	}
+
 	if err = db.DB.Ping(); err != nil {
 		return &DBStor{InFiles: true}, err
 	}
@@ -57,13 +65,12 @@ func DBinit(DBInfo string) (*DBStor, error) {
 }
 
 // сохранение полученных значений в таблицу SQL
-func (db *DBStor) DBsave(key string, val string) error {
+func (db *DBStor) Save(key string, val string) error {
 	if db.InFiles {
 		return nil
 	}
 
 	var err error
-
 	_, err = db.DB.Exec(QuerrySave, key, val)
 	if err != nil {
 		if db.CodeIsUniqueViolation(err) {
@@ -77,7 +84,7 @@ func (db *DBStor) DBsave(key string, val string) error {
 }
 
 // получение значений из таблицы SQL по ключу
-func (db *DBStor) DBget(key string) (string, error) {
+func (db *DBStor) Get(key string) (string, error) {
 	if db.InFiles {
 		return "", nil
 	}
@@ -95,7 +102,7 @@ func (db *DBStor) DBget(key string) (string, error) {
 
 // получение значений из таблицы SQL по значению
 // (для случаевв если переданный URL сожержится в базе)
-func (db *DBStor) DBgetOrig(val string) (string, error) {
+func (db *DBStor) GetOrig(val string) (string, error) {
 	var err error
 	var key string
 
@@ -109,18 +116,20 @@ func (db *DBStor) DBgetOrig(val string) (string, error) {
 
 // сохранение значений в таблицу при помощи транзакций
 // (для случая с большим количеством URL на входе)
-func (db *DBStor) DBsaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, error) {
+func (db *DBStor) SaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, error) {
 	if db.InFiles {
 		return nil, nil
 	}
 	var IncomeURL models.BatchIncomeURL
 	var OutBuff models.OutBuff
 
+	//подготовка транзакции
 	tx, err := db.DB.Begin()
 	if err != nil {
 		db.InFiles = true
 		return nil, err
 	}
+	// потоковое чтение JSON и сохранение в базу по транзакциям
 	for dec.More() {
 		err := dec.Decode(&IncomeURL)
 		if err == io.EOF {
@@ -128,19 +137,19 @@ func (db *DBStor) DBsaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, e
 		} else if err != nil {
 			return nil, err
 		}
-		hashStr := randomString(8)
-		//inmemory.AddValue(hashStr, IncomeURL.URL)
-
-		// err = hd.Files.FileSave(hashStr, IncomeURL.URL)
-		// if err != nil {
-		// 	logger.Log.Info("Error in FileSave", zap.Error(err))
-		// }
+		hashStr := models.RandomString(8)
 
 		_, err = tx.Exec(QuerrySave, hashStr, IncomeURL.URL)
 		if err != nil {
 			tx.Rollback()
 			db.InFiles = true
 			return nil, err
+		}
+
+		//сохранение URL в файле
+		err = db.file.FileSave(hashStr, IncomeURL.URL)
+		if err != nil {
+			logger.Log.Info("Error in safe to file")
 		}
 
 		var OutURL models.BatchOutURL
@@ -155,18 +164,6 @@ func (db *DBStor) DBsaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, e
 		return nil, err
 	}
 
-	// tx, err := db.DB.Begin()
-	// if err != nil {
-	// 	db.InFiles = true
-	// 	return err
-	// }
-
-	// _, err = tx.Exec(QuerrySave, key, val)
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	db.InFiles = true
-	// 	return err
-	// }
 	return OutBuff, nil
 }
 
@@ -183,14 +180,4 @@ func (db *DBStor) Ping() error {
 func (db *DBStor) CodeIsUniqueViolation(err error) bool {
 	strErr := fmt.Sprintf("%s", err)
 	return strings.Contains(strErr, pgerrcode.UniqueViolation)
-}
-func randomString(n int) string {
-
-	var bt []byte
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	for range n {
-		bt = append(bt, charset[rand.Intn(len(charset))])
-	}
-
-	return string(bt)
 }

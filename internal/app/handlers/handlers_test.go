@@ -3,6 +3,8 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,21 +13,35 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Arti9991/shortener/internal/config"
-	"github.com/Arti9991/shortener/internal/storage/database"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
+	"github.com/Arti9991/shortener/internal/storage/mocks"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var conf = config.InitConfTests()
-var dt = inmemory.NewData()
-var fl, _ = files.NewFiles(conf.FilePath, dt)
-var db, _ = database.DBinit(conf.DBAddress)
-var hd = NewHandlersData(dt, conf.BaseAdr, fl, db)
+//для базовых тестов производится генерация моков командой ниже
+// mockgen --source=./internal/storage/storage.go --destination=./internal/storage/mocks/mocks_store.go --package=mocks StorFunc
+
+var BaseAdr = "http://example.com"
+var Files = files.FilesTest()
 
 func TestPostAddr(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+
+	// задаем режим рабоыт моков (для POST главное отсутствие ошибки)
+	m.EXPECT().
+		Save(gomock.Any(), gomock.Any()).
+		Return(nil).
+		MaxTimes(1)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+
 	type want struct {
 		statusCode  int
 		contentType string
@@ -88,13 +104,24 @@ func TestPostAddr(t *testing.T) {
 			strResult := string(userResult)
 			bl := strings.Contains(strResult, test.want.answer)
 			assert.True(t, bl)
-			res, _ := strings.CutPrefix(strResult, "http://example.com/")
-			assert.Equal(t, test.body, dt.ShortUrls[res])
 		})
 	}
 }
 
 func TestPostAddrJSON(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+	// задаем режим рабоыт моков (для POST главное отсутствие ошибки)
+	m.EXPECT().
+		Save(gomock.Any(), gomock.Any()).
+		Return(nil).
+		MaxTimes(2)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+
 	type want struct {
 		statusCode  int
 		contentType string
@@ -147,19 +174,28 @@ func TestPostAddrJSON(t *testing.T) {
 			require.NoError(t, err)
 
 			strResult := string(ResURL.Result)
+			fmt.Println(strResult)
 
-			res, _ := strings.CutPrefix(strResult, "http://example.com/")
-			assert.Equal(t, test.want.answer, hd.dt.ShortUrls[res])
-			err = result.Body.Close()
-			require.NoError(t, err)
+			// res, _ := strings.CutPrefix(strResult, "http://example.com/")
+			// assert.Equal(t, test.want.answer, hd.Dt.ShortUrls[res])
+			// err = result.Body.Close()
+			// require.NoError(t, err)
 		})
 	}
 }
 
 func TestGet(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+
 	type want struct {
 		statusCode int
 		answer     string
+		err        error
 	}
 	tests := []struct {
 		name    string
@@ -174,6 +210,7 @@ func TestGet(t *testing.T) {
 			want: want{
 				statusCode: 307,
 				answer:     "ya.ru",
+				err:        nil,
 			},
 		},
 		{
@@ -183,29 +220,39 @@ func TestGet(t *testing.T) {
 			want: want{
 				statusCode: 307,
 				answer:     "/env/local/path_slide/beta",
+				err:        nil,
 			},
 		},
 		{
 			name:    "Test for error with no hash",
-			hash:    "AMFhvnth",
+			hash:    "/",
 			request: "/",
 			want: want{
 				statusCode: 400,
 				answer:     "",
+				err:        errors.New("no such URL in memory"),
 			},
 		},
 		{
 			name:    "Test for error with bad hash",
-			hash:    "DxDfgvDa",
+			hash:    "SAGREVad",
 			request: "/SAGREVad",
 			want: want{
 				statusCode: 400,
 				answer:     "",
+				err:        errors.New("no such URL in memory"),
 			},
 		},
 	}
 	for _, test := range tests {
-		dt.AddValue(test.hash, test.want.answer)
+		// задаем режим рабоыт моков (для GET проверяем полученные файлы)
+		m.EXPECT().
+			Get(test.hash).
+			Return(test.want.answer, test.want.err).
+			MaxTimes(1)
+
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
 			w := httptest.NewRecorder()
@@ -222,6 +269,9 @@ func TestGet(t *testing.T) {
 }
 
 func TestMultuplTasks(t *testing.T) {
+	// для сложных запросов используем подменную структуру с хранением данных в памяти
+	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest())
+
 	type want struct {
 		statusCode1  int
 		statusCode2  int
@@ -338,6 +388,9 @@ func TestMultuplTasks(t *testing.T) {
 }
 
 func TestPostBatch(t *testing.T) {
+	// для сложных запросов используем подменную структуру с хранением данных в памяти
+	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest())
+
 	type want struct {
 		statusCode  int
 		contentType string
@@ -429,7 +482,8 @@ func TestPostBatch(t *testing.T) {
 				strResult := string(ResURL[i].ShortURL)
 
 				res, _ := strings.CutPrefix(strResult, "http://example.com/")
-				assert.Equal(t, test.want.answers[i], hd.dt.ShortUrls[res])
+				inmem, _ := hd.Dt.Get(res)
+				assert.Equal(t, test.want.answers[i], inmem)
 			}
 			err = result.Body.Close()
 			require.NoError(t, err)

@@ -8,13 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// type OutURL struct {
-// 	CorrID   string `json:"correlation_id"`
-// 	ShortURL string `json:"short_url"`
-// }
-
 // хэндлер создания укороченных URL для массива JSON
-func PostBatch(hd *handlersData) http.HandlerFunc {
+func PostBatch(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			logger.Log.Info("Only POST requests are allowed with this path!", zap.String("method", req.Method))
@@ -27,14 +22,6 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			return
 		}
 
-		// var IncomeURL models.BatchIncomeURL
-		// var OutBuff models.OutBuff
-		// IncomeURL := &struct {
-		// 	CorrID string `json:"correlation_id"`
-		// 	URL    string `json:"original_url"`
-		// }{}
-		// var OutBuff []OutURL
-
 		dec := json.NewDecoder(req.Body)
 		if _, err := dec.Token(); err != nil {
 			logger.Log.Info("Bad request body", zap.Error(err))
@@ -42,36 +29,8 @@ func PostBatch(hd *handlersData) http.HandlerFunc {
 			return
 		}
 
-		// for dec.More() {
-		// 	err := dec.Decode(&IncomeURL)
-		// 	if err == io.EOF {
-		// 		break
-		// 	} else if err != nil {
-		// 		logger.Log.Info("Bad request body", zap.Error(err))
-		// 		res.WriteHeader(http.StatusBadRequest)
-		// 		return
-		// 	}
-
-		// 	hashStr := randomString(8)
-		// 	hd.dt.AddValue(hashStr, IncomeURL.URL)
-
-		// 	err = hd.Files.FileSave(hashStr, IncomeURL.URL)
-		// 	if err != nil {
-		// 		logger.Log.Info("Error in FileSave", zap.Error(err))
-		// 	}
-
-		// 	err = hd.DataBase.DBsaveTx(hashStr, IncomeURL.URL)
-		// 	if err != nil {
-		// 		logger.Log.Info("Error in DBsave", zap.Error(err))
-		// 	}
-
-		// 	var OutURL OutURL
-		// 	OutURL.ShortURL = hd.BaseAdr + "/" + hashStr
-		// 	OutURL.CorrID = IncomeURL.CorrID
-
-		// 	OutBuff = append(OutBuff, OutURL)
-		// }
-		OutBuff, err := hd.DataBase.DBsaveTx(dec, hd.BaseAdr)
+		// сохранение URL в базу и в файл
+		OutBuff, err := hd.Dt.SaveTx(dec, hd.BaseAdr)
 		if err != nil {
 			logger.Log.Info("Error in DBsaveTx", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)

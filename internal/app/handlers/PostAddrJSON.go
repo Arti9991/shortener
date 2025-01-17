@@ -2,15 +2,18 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
+	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 )
 
 // хэндлер создания укороченного URL в формате JSON
-func PostAddrJSON(hd *handlersData) http.HandlerFunc {
+func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			logger.Log.Info("Only POST requests are allowed with this path!", zap.String("method", req.Method))
@@ -25,12 +28,6 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 
 		var IncomeURL models.IncomeURL
 		var OutcomeURL models.OutcomeURL
-		// IncomeURL := &struct {
-		// 	URL string `json:"url"`
-		// }{}
-		// OutcomeURL := &struct {
-		// 	ShortURL string `json:"result"`
-		// }{}
 
 		err := json.NewDecoder(req.Body).Decode(&IncomeURL)
 		if err != nil {
@@ -40,19 +37,13 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 		}
 
 		hashStr := randomString(8)
-		hd.dt.AddValue(hashStr, IncomeURL.URL)
 
-		err = hd.Files.FileSave(hashStr, IncomeURL.URL)
+		err = hd.Dt.Save(hashStr, IncomeURL.URL)
 		if err != nil {
-			logger.Log.Info("Error in FileSave", zap.Error(err))
-		}
-
-		err = hd.DataBase.DBsave(hashStr, IncomeURL.URL)
-		if err != nil {
-			logger.Log.Info("Error in DBsave", zap.Error(err))
-			if hd.DataBase.CodeIsUniqueViolation(err) {
-				logger.Log.Info("URL already exicts! Getting shorten version")
-				hashStr, err2 := hd.DataBase.DBgetOrig(IncomeURL.URL)
+			logger.Log.Info("Error in Save", zap.Error(err))
+			if strings.Contains(fmt.Sprintf("%s", err), pgerrcode.UniqueViolation) {
+				logger.Log.Info("URL already exicts! Getting shorten version", zap.String("income URL", IncomeURL.URL))
+				hashStr, err2 := hd.Dt.GetOrig(IncomeURL.URL)
 				if err2 != nil {
 					logger.Log.Info("Error in GetOrig", zap.Error(err2))
 					res.WriteHeader(http.StatusBadRequest)
@@ -72,6 +63,12 @@ func PostAddrJSON(hd *handlersData) http.HandlerFunc {
 				res.Write(out)
 				return
 			}
+		}
+
+		// сохранение в файл
+		err = hd.Files.FileSave(hashStr, IncomeURL.URL)
+		if err != nil {
+			logger.Log.Info("Error in FileSave", zap.Error(err))
 		}
 
 		OutcomeURL.ShortURL = hd.BaseAdr + "/" + hashStr

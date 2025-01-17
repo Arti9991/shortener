@@ -17,10 +17,11 @@ import (
 )
 
 type Server struct {
-	Storage  *inmemory.Data
+	Inmemory *inmemory.Data
 	Config   config.Config
 	Files    *files.FileData
 	DataBase *database.DBStor
+	hd       *handlers.HandlersData
 }
 
 // инциализация всех необходимых струткур
@@ -35,31 +36,20 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	// инциализация хранилища в памяти
-	Serv.Storage = inmemory.NewData()
-	// инциализация структуры для файлов
-	Serv.Files, err = files.NewFiles(Serv.Config.FilePath, Serv.Storage)
-	if err != nil {
-		logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err))
-	}
-	Serv.DataBase, err = database.DBinit(Serv.Config.DBAddress)
-	if err != nil {
-		logger.Log.Info("Error while connecting to database! Setting file or inmemory mode!", zap.Error(err)) //, zap.String("Conf for DB", Serv.Config.DBAddress))
-	}
+	Serv.StorInit()
 
 	return &Serv, nil
 }
 
 // создание роутера chi для хэндлеров
 func (s *Server) MainRouter() chi.Router {
-	hd := handlers.NewHandlersData(s.Storage, s.Config.BaseAdr, s.Files, s.DataBase)
 
 	rt := chi.NewRouter()
-	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddr(hd))))
-	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.GetAddr(hd))))
-	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.Ping(hd))))
-	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddrJSON(hd))))
-	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostBatch(hd))))
+	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddr(s.hd))))
+	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.GetAddr(s.hd))))
+	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.Ping(s.hd))))
+	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddrJSON(s.hd))))
+	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostBatch(s.hd))))
 
 	return rt
 }
@@ -76,7 +66,8 @@ func RunServer() error {
 		zap.String("Base addres:", serv.Config.BaseAdr),
 	)
 
-	err = serv.Files.FileRead()
+	//чтение всех данных из файла в память
+	err = serv.FileRead(serv.hd.Files)
 	if err != nil {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}

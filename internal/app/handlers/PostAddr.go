@@ -1,15 +1,18 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 )
 
 // хэндлер создания укороченного URL
-func PostAddr(hd *handlersData) http.HandlerFunc {
+func PostAddr(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			logger.Log.Info("Only POST requests are allowed with this path!", zap.String("method", req.Method))
@@ -24,18 +27,14 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 		}
 
 		hashStr := randomString(8)
-		hd.dt.AddValue(hashStr, string(body))
-		err = hd.Files.FileSave(hashStr, string(body))
-		if err != nil {
-			logger.Log.Info("Error in FileSave", zap.Error(err))
-		}
 
-		err = hd.DataBase.DBsave(hashStr, string(body))
+		// сохранение URL в базу или в память
+		err = hd.Dt.Save(hashStr, string(body))
 		if err != nil {
-			logger.Log.Info("Error in DBsave", zap.Error(err))
-			if hd.DataBase.CodeIsUniqueViolation(err) {
-				logger.Log.Info("URL already exicts! Getting shorten version")
-				hashStr, err2 := hd.DataBase.DBgetOrig(string(body))
+			logger.Log.Info("Error in Save", zap.Error(err))
+			if strings.Contains(fmt.Sprintf("%s", err), pgerrcode.UniqueViolation) {
+				logger.Log.Info("URL already exicts! Getting shorten version", zap.String("income URL", string(body)))
+				hashStr, err2 := hd.Dt.GetOrig(string(body))
 				if err2 != nil {
 					logger.Log.Info("Error in GetOrig", zap.Error(err2))
 					res.WriteHeader(http.StatusBadRequest)
@@ -48,6 +47,12 @@ func PostAddr(hd *handlersData) http.HandlerFunc {
 				res.Write([]byte(ansStr))
 				return
 			}
+		}
+
+		// сохранение URL в файл
+		err = hd.Files.FileSave(hashStr, string(body))
+		if err != nil {
+			logger.Log.Info("Error in FileSave", zap.Error(err))
 		}
 
 		ansStr := hd.BaseAdr + "/" + hashStr

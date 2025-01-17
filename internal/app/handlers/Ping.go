@@ -8,9 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func Ping(hd *handlersData) http.HandlerFunc {
+func Ping(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		err := hd.DataBase.Ping()
+		err := hd.Dt.Ping()
 		if err != nil {
 			logger.Log.Info("Error in ping database!", zap.Error(err))
 			res.WriteHeader(http.StatusInternalServerError)

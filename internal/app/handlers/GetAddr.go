@@ -9,7 +9,7 @@ import (
 )
 
 // хэндлер для получения оригинального URL по укороченному
-func GetAddr(hd *handlersData) http.HandlerFunc {
+func GetAddr(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
 			logger.Log.Info("Only GET requests are allowed with this path!", zap.String("method", req.Method))
@@ -19,20 +19,17 @@ func GetAddr(hd *handlersData) http.HandlerFunc {
 		var err error
 
 		ident := path.Base(req.URL.String())
-		redir := hd.dt.GetURL(ident)
-
-		if redir == "" {
-			redir, err = hd.DataBase.DBget(ident)
-			if err != nil {
-				logger.Log.Info("Error im GET method!", zap.String("ID", ident))
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			} else if redir == "" {
-				logger.Log.Info("There is no such identifier!", zap.String("ID", ident))
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
+		redir, err := hd.Dt.Get(ident)
+		if err != nil {
+			logger.Log.Info("Error im GET method!", zap.String("ID", ident))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		} else if redir == "" {
+			logger.Log.Info("There is no such identifier!", zap.String("ID", ident))
+			res.WriteHeader(http.StatusBadRequest)
+			return
 		}
+
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)
 		//logger.Log.Info("Response status is 307 TemporaryRedirect.", zap.String("location", res.Header().Get("Location")), zap.Int("size", len(redir)))
