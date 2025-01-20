@@ -7,7 +7,7 @@ import (
 )
 
 type StorFunc interface {
-	Save(string, string) error
+	Save(string, string, string) error
 	Get(string) (string, error)
 	GetOrig(string) (string, error)
 	SaveTx(*json.Decoder, string) (models.OutBuff, error)

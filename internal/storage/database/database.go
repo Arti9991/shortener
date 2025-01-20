@@ -18,11 +18,12 @@ import (
 
 var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
+	user_id VARCHAR(16),
     hash_id 	VARCHAR(8),
     income_url VARCHAR(100) NOT NULL UNIQUE
 	);`
-var QuerrySave = `INSERT INTO urls (id, hash_id, income_url)
-	VALUES  (DEFAULT, $1, $2);`
+var QuerrySave = `INSERT INTO urls (id, user_id, hash_id, income_url)
+	VALUES  (DEFAULT, $1, $2, $3);`
 var QuerryGet = `SELECT income_url
 	FROM urls WHERE hash_id = $1 LIMIT 1;`
 var QuerryGetOrig = `SELECT hash_id
@@ -64,13 +65,13 @@ func DBinit(DBInfo string) (*DBStor, error) {
 }
 
 // сохранение полученных значений в таблицу SQL
-func (db *DBStor) Save(key string, val string) error {
+func (db *DBStor) Save(key string, val string, UserID string) error {
 	if db.InFiles {
 		return nil
 	}
 
 	var err error
-	_, err = db.DB.Exec(QuerrySave, key, val)
+	_, err = db.DB.Exec(QuerrySave, UserID, key, val)
 	if err != nil {
 		if db.CodeIsUniqueViolation(err) {
 			return err

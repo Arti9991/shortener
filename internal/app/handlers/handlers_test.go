@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
 	"github.com/Arti9991/shortener/internal/storage/mocks"
@@ -27,6 +29,10 @@ import (
 var BaseAdr = "http://example.com"
 var Files = files.FilesTest()
 
+var key = auth.KeyContext("UserID")
+
+var UserID = "125"
+
 func TestPostAddr(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -37,7 +43,7 @@ func TestPostAddr(t *testing.T) {
 
 	// задаем режим рабоыт моков (для POST главное отсутствие ошибки)
 	m.EXPECT().
-		Save(gomock.Any(), gomock.Any()).
+		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(1)
 	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
@@ -88,6 +94,10 @@ func TestPostAddr(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(test.body))
+
+			ctx := context.WithValue(request.Context(), key, UserID)
+			request = request.WithContext(ctx)
+
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(PostAddr(hd))
 			h(w, request)
@@ -117,7 +127,7 @@ func TestPostAddrJSON(t *testing.T) {
 	m := mocks.NewMockStorFunc(ctrl)
 	// задаем режим рабоыт моков (для POST главное отсутствие ошибки)
 	m.EXPECT().
-		Save(gomock.Any(), gomock.Any()).
+		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(2)
 	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
@@ -161,6 +171,10 @@ func TestPostAddrJSON(t *testing.T) {
 				Result string `json:"result"`
 			}{}
 			request := httptest.NewRequest(http.MethodPost, test.request, bytes.NewBuffer([]byte(test.income)))
+
+			ctx := context.WithValue(request.Context(), key, UserID)
+			request = request.WithContext(ctx)
+
 			request.Header.Add("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(PostAddrJSON(hd))
@@ -255,6 +269,10 @@ func TestGet(t *testing.T) {
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
+
+			ctx := context.WithValue(request.Context(), key, UserID)
+			request = request.WithContext(ctx)
+
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(GetAddr(hd))
 			h(w, request)
@@ -347,6 +365,10 @@ func TestMultuplTasks(t *testing.T) {
 			strResults := make([]string, 0)
 			for _, body := range test.bodys {
 				request1 := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(body))
+
+				ctx1 := context.WithValue(request1.Context(), key, UserID)
+				request1 = request1.WithContext(ctx1)
+
 				w1 := httptest.NewRecorder()
 				h1 := http.HandlerFunc(PostAddr(hd))
 				h1(w1, request1)
@@ -370,6 +392,10 @@ func TestMultuplTasks(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 			for i, loc := range test.want.locations {
 				request2 := httptest.NewRequest(http.MethodGet, strResults[i], nil)
+
+				ctx2 := context.WithValue(request2.Context(), key, UserID)
+				request2 = request2.WithContext(ctx2)
+
 				w2 := httptest.NewRecorder()
 				h2 := http.HandlerFunc(GetAddr(hd))
 				h2(w2, request2)

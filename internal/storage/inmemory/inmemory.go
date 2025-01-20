@@ -17,22 +17,25 @@ type Data struct {
 	sync.Mutex
 	File      *files.FileData
 	ShortUrls map[string]string
+	UserKeys  map[string]string
 }
 
 // инициализация карты для хранения пар:
 // ключ (сокращенный URL) - значение (исходный URL)
 func NewData(file *files.FileData) *Data {
 	dt := make(map[string]string)
-	return &Data{File: file, ShortUrls: dt}
+	us := make(map[string]string)
+	return &Data{File: file, ShortUrls: dt, UserKeys: us}
 }
 
 // добавление пары ключ (сокращенный URL) - значение (исходный URL)
-func (d *Data) Save(key string, value string) error {
+func (d *Data) Save(key string, value string, UserID string) error {
 	d.Lock()
 	defer d.Unlock()
 	_, ok := d.ShortUrls[key]
 	if !ok {
 		d.ShortUrls[key] = value
+		d.UserKeys[UserID] = key
 	}
 	return nil
 }

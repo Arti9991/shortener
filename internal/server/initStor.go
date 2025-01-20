@@ -79,7 +79,7 @@ func (s *Server) FileRead(d *files.FileData) error {
 			return err
 		}
 
-		err = s.hd.Dt.Save(fl.Shorturl, fl.Origurl)
+		err = s.hd.Dt.Save(fl.Shorturl, fl.Origurl, "1") ////////////////////////////////////////////////////////////////////
 		if err != nil {
 			logger.Log.Info("Error in saving data!", zap.Error(err))
 			return err

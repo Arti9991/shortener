@@ -26,10 +26,14 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
+		UserID := req.Context().Value(UserKey).(string)
+		fmt.Println(UserID)
+		//UserID := "1"
+		//генерация рандомной строки
 		hashStr := randomString(8)
 
 		// сохранение URL в базу или в память
-		err = hd.Dt.Save(hashStr, string(body))
+		err = hd.Dt.Save(hashStr, string(body), UserID)
 		if err != nil {
 			logger.Log.Info("Error in Save", zap.Error(err))
 			if strings.Contains(fmt.Sprintf("%s", err), pgerrcode.UniqueViolation) {
