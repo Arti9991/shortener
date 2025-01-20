@@ -3,7 +3,6 @@ package files
 import (
 	"bufio"
 	"encoding/json"
-	"io"
 	"os"
 
 	"github.com/Arti9991/shortener/internal/logger"
@@ -119,12 +118,12 @@ func (d *FileData) FileSave(key string, val string) error {
 }
 
 // функция сохранения множества URL в файл при чтении их из JSON
-func (d *FileData) FileSaveTx(dec *json.Decoder, BaseAdr string) error {
+func (d *FileData) FileSaveTx(InURLs models.InBuff, BaseAdr string) error {
 	// проверка флага на хранение данных в памяти
 	if d.InMemory {
 		return nil
 	}
-	var IncomeURL models.BatchIncomeURL
+
 	logger.Log.Info("INFO Saving file")
 	file, err := os.OpenFile(d.Path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
@@ -135,18 +134,13 @@ func (d *FileData) FileSaveTx(dec *json.Decoder, BaseAdr string) error {
 	writer := bufio.NewWriter(file)
 	defer file.Close()
 
-	for dec.More() {
-		err := dec.Decode(&IncomeURL)
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-		hashStr := models.RandomString(8)
+	for _, income := range InURLs {
+
+		hashStr := income.Hash
 		d.ID += 1
 		var fl FileStor
 		fl.ID = d.ID
-		fl.Origurl = IncomeURL.URL
+		fl.Origurl = income.URL
 		fl.Shorturl = hashStr
 
 		data, err := json.Marshal(&fl)

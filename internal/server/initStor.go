@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/Arti9991/shortener/internal/app/handlers"
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/storage/database"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
+	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 )
 
@@ -81,10 +83,14 @@ func (s *Server) FileRead(d *files.FileData) error {
 
 		err = s.hd.Dt.Save(fl.Shorturl, fl.Origurl)
 		if err != nil {
-			logger.Log.Info("Error in saving data!", zap.Error(err))
-			return err
+			if !strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
+				logger.Log.Info("Error in saving data!", zap.Error(err))
+				return err
+			}
+			logger.Log.Info("This URL already in DB!")
+		} else {
+			id = fl.ID
 		}
-		id = fl.ID
 	}
 	d.ID = id
 	return nil

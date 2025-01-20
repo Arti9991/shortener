@@ -21,7 +21,7 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 		ident := path.Base(req.URL.String())
 		redir, err := hd.Dt.Get(ident)
 		if err != nil {
-			logger.Log.Info("Error im GET method!", zap.String("ID", ident))
+			logger.Log.Info("Error im GET method!", zap.String("ID", ident), zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		} else if redir == "" {

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -42,7 +41,7 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 		err = hd.Dt.Save(hashStr, IncomeURL.URL)
 		if err != nil {
 			logger.Log.Info("Error in Save", zap.Error(err))
-			if strings.Contains(fmt.Sprintf("%s", err), pgerrcode.UniqueViolation) {
+			if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 				logger.Log.Info("URL already exicts! Getting shorten version", zap.String("income URL", IncomeURL.URL))
 				hashStr, err2 := hd.Dt.GetOrig(IncomeURL.URL)
 				if err2 != nil {
