@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -24,6 +25,9 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
+		UserID := req.Context().Value(UserKey).(string)
+		fmt.Println(UserID)
+
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			logger.Log.Info("Bad request body", zap.Error(err))
@@ -42,6 +46,7 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 		//заполнение вспомогательной структуры хэшами
 		for i := range InURLs {
 			InURLs[i].Hash = models.RandomString(8)
+			InURLs[i].UserID = UserID
 		}
 		// сохранение URL в базу
 		OutBuff, err := hd.Dt.SaveTx(InURLs, hd.BaseAdr)

@@ -14,14 +14,14 @@ type Data struct {
 	sync.Mutex
 	File      *files.FileData
 	ShortUrls map[string]string
-	UserKeys  map[string]string
+	UserKeys  map[string][]string
 }
 
 // инициализация карты для хранения пар:
 // ключ (сокращенный URL) - значение (исходный URL)
 func NewData(file *files.FileData) *Data {
 	dt := make(map[string]string)
-	us := make(map[string]string)
+	us := make(map[string][]string)
 	return &Data{File: file, ShortUrls: dt, UserKeys: us}
 }
 
@@ -32,7 +32,7 @@ func (d *Data) Save(key string, value string, UserID string) error {
 	_, ok := d.ShortUrls[key]
 	if !ok {
 		d.ShortUrls[key] = value
-		d.UserKeys[UserID] = key
+		d.UserKeys[UserID] = append(d.UserKeys[UserID], key)
 	}
 	return nil
 }
@@ -60,6 +60,20 @@ func (d *Data) GetOrig(val string) (string, error) {
 	return "", errors.New("no such URL in map")
 }
 
+// получение оригнального URL по сокращенному
+func (d *Data) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
+	d.Lock()
+	defer d.Unlock()
+	var OutBuff models.UserBuff
+	for _, hash := range d.UserKeys[UserID] {
+		//var UserURL models.UserURL
+		orig := d.ShortUrls[hash]
+		short := BaseAdr + "/" + hash
+		OutBuff = append(OutBuff, models.UserURL{ShortURL: short, OrigURL: orig})
+	}
+	return OutBuff, nil
+}
+
 // множестевнное сохранение во внутреннюю память
 func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error) {
 
@@ -72,6 +86,7 @@ func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, err
 		_, ok := d.ShortUrls[hashStr]
 		if !ok {
 			d.ShortUrls[hashStr] = income.URL
+			d.UserKeys[income.UserID] = append(d.UserKeys[income.UserID], hashStr)
 		}
 
 		// // сохранение URL в файле

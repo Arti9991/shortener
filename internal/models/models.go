@@ -6,12 +6,12 @@ type BatchIncomeURL struct {
 	CorrID string `json:"correlation_id"`
 	URL    string `json:"original_url"`
 	Hash   string `json:"-"`
+	UserID string `json:"-"`
 }
 type BatchOutURL struct {
 	CorrID   string `json:"correlation_id"`
 	ShortURL string `json:"short_url"`
 }
-
 type InBuff []BatchIncomeURL
 type OutBuff []BatchOutURL
 
@@ -21,6 +21,12 @@ type IncomeURL struct {
 type OutcomeURL struct {
 	ShortURL string `json:"result"`
 }
+
+type UserURL struct {
+	ShortURL string `json:"short_url"`
+	OrigURL  string `json:"original_url"`
+}
+type UserBuff []UserURL
 
 func RandomString(n int) string {
 

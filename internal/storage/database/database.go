@@ -25,6 +25,8 @@ var QuerryGet = `SELECT income_url
 	FROM urls WHERE hash_id = $1 LIMIT 1;`
 var QuerryGetOrig = `SELECT hash_id
 	FROM urls WHERE income_url = $1 LIMIT 1;`
+var QuerryGetUser = `SELECT hash_id, income_url
+	FROM urls WHERE user_id = $1;`
 
 type DBStor struct {
 	storage.StorFunc
@@ -110,6 +112,35 @@ func (db *DBStor) GetOrig(val string) (string, error) {
 	return key, nil
 }
 
+func (db *DBStor) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
+	if db.InFiles {
+		return nil, nil
+	}
+	var err error
+	var OutBuff models.UserBuff
+	//for _, hash := range d.UserKeys[UserID] {
+	rows, err := db.DB.Query(QuerryGetUser, UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var UserURL models.UserURL
+		err = rows.Scan(&UserURL.ShortURL, &UserURL.OrigURL)
+		if err != nil {
+			return nil, err
+		}
+		UserURL.ShortURL = BaseAdr + "/" + UserURL.ShortURL
+
+		OutBuff = append(OutBuff, UserURL)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return OutBuff, nil
+}
+
 // сохранение значений в таблицу при помощи транзакций
 // (для случая с большим количеством URL на входе)
 func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error) {
@@ -128,8 +159,9 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 	// потоковое чтение JSON и сохранение в базу по транзакциям
 	for _, income := range InURLs {
 		hashStr := income.Hash
+		user := income.UserID
 
-		_, err = tx.Exec(QuerrySave, hashStr, income.URL)
+		_, err = tx.Exec(QuerrySave, user, hashStr, income.URL)
 		if err != nil {
 			tx.Rollback()
 			db.InFiles = true

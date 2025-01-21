@@ -18,3 +18,6 @@ func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
 		h.ServeHTTP(res, req)
 	}
 }
+
+//TODO: доделать авторизацию через куки с симметричным шифрованием
+// на данный момент авторизация заменена заглушкой UserID

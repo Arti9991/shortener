@@ -51,6 +51,7 @@ func (s *Server) MainRouter() chi.Router {
 	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.Ping(s.hd)))))
 	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostAddrJSON(s.hd)))))
 	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostBatch(s.hd)))))
+	rt.Get("/api/user/urls", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.GetAddrUser(s.hd)))))
 
 	return rt
 }
