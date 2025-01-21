@@ -2,10 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
@@ -115,11 +112,11 @@ func (db *DBStor) GetOrig(val string) (string, error) {
 
 // сохранение значений в таблицу при помощи транзакций
 // (для случая с большим количеством URL на входе)
-func (db *DBStor) SaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, error) {
+func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error) {
 	if db.InFiles {
 		return nil, nil
 	}
-	var IncomeURL models.BatchIncomeURL
+
 	var OutBuff models.OutBuff
 
 	//подготовка транзакции
@@ -129,31 +126,25 @@ func (db *DBStor) SaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, err
 		return nil, err
 	}
 	// потоковое чтение JSON и сохранение в базу по транзакциям
-	for dec.More() {
-		err := dec.Decode(&IncomeURL)
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, err
-		}
-		hashStr := models.RandomString(8)
+	for _, income := range InURLs {
+		hashStr := income.Hash
 
-		_, err = tx.Exec(QuerrySave, hashStr, IncomeURL.URL)
+		_, err = tx.Exec(QuerrySave, hashStr, income.URL)
 		if err != nil {
 			tx.Rollback()
 			db.InFiles = true
 			return nil, err
 		}
 
-		//сохранение URL в файле
-		err = db.File.FileSave(hashStr, IncomeURL.URL)
-		if err != nil {
-			logger.Log.Info("Error in safe to File")
-		}
+		// //сохранение URL в файле
+		// err = db.File.FileSave(hashStr, IncomeURL.URL)
+		// if err != nil {
+		// 	logger.Log.Info("Error in safe to File")
+		// }
 
 		var OutURL models.BatchOutURL
 		OutURL.ShortURL = BaseAdr + "/" + hashStr
-		OutURL.CorrID = IncomeURL.CorrID
+		OutURL.CorrID = income.CorrID
 
 		OutBuff = append(OutBuff, OutURL)
 	}
@@ -177,6 +168,6 @@ func (db *DBStor) Ping() error {
 }
 
 func (db *DBStor) CodeIsUniqueViolation(err error) bool {
-	strErr := fmt.Sprintf("%s", err)
+	strErr := err.Error()
 	return strings.Contains(strErr, pgerrcode.UniqueViolation)
 }

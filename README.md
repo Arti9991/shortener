@@ -31,6 +31,11 @@ git fetch template && git checkout template/main .github
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
 
+Например, запуск тестов для iter12 из под GitBash для windows. 
+```
+shortenertest -test.v -test.run=^TestIteration12$ -binary-path=cmd/shortener/shortener -database-dsn="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
+```
+
 Комманды для ручной проверки сервера (на данной итерации)
 
 Стартовый POST запрос в cURL:
@@ -66,7 +71,7 @@ curl -v -X POST -H "Content-Type: application/json" -d '[
 {"correlation_id":"ID","original_url":"www.Mya.ru"}]' http://localhost:8082/api/shorten/batch
 ```
 
-запуск тестов для iter12 из под GitBash
+Запуск основного серверева с соединение к БД, но без сохранений в файлах (для файлов добавить флаг `-f=./storage.csv`)
 ```
-shortenertest -test.v -test.run=^TestIteration12$ -binary-path=cmd/shortener/shortener -database-dsn="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
-```
+ DATABASE_DSN="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable" ./shortener.exe -a :8082
+ ```

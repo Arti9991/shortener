@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -36,7 +35,7 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 		err = hd.Dt.Save(hashStr, string(body), UserID)
 		if err != nil {
 			logger.Log.Info("Error in Save", zap.Error(err))
-			if strings.Contains(fmt.Sprintf("%s", err), pgerrcode.UniqueViolation) {
+			if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 				logger.Log.Info("URL already exicts! Getting shorten version", zap.String("income URL", string(body)))
 				hashStr, err2 := hd.Dt.GetOrig(string(body))
 				if err2 != nil {

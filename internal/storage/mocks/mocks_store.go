@@ -5,7 +5,6 @@
 package mocks
 
 import (
-	json "encoding/json"
 	reflect "reflect"
 
 	models "github.com/Arti9991/shortener/internal/models"
@@ -94,7 +93,7 @@ func (mr *MockStorFuncMockRecorder) Save(arg0, arg1, arg2 interface{}) *gomock.C
 }
 
 // SaveTx mocks base method.
-func (m *MockStorFunc) SaveTx(arg0 *json.Decoder, arg1 string) (models.OutBuff, error) {
+func (m *MockStorFunc) SaveTx(arg0 models.InBuff, arg1 string) (models.OutBuff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveTx", arg0, arg1)
 	ret0, _ := ret[0].(models.OutBuff)

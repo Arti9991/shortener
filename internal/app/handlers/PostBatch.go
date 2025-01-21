@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"go.uber.org/zap"
 )
 
@@ -22,21 +24,39 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
-		dec := json.NewDecoder(req.Body)
-		if _, err := dec.Token(); err != nil {
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
 			logger.Log.Info("Bad request body", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		// сохранение URL в базу и в файл
-		OutBuff, err := hd.Dt.SaveTx(dec, hd.BaseAdr)
+		var InURLs models.InBuff
+		// декодирование тела запроса
+		err = json.Unmarshal(body, &InURLs)
 		if err != nil {
-			logger.Log.Info("Error in DBsaveTx", zap.Error(err))
+			logger.Log.Info("Bad request unmarshall", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		//заполнение вспомогательной структуры хэшами
+		for i := range InURLs {
+			InURLs[i].Hash = models.RandomString(8)
+		}
+		// сохранение URL в базу
+		OutBuff, err := hd.Dt.SaveTx(InURLs, hd.BaseAdr)
+		if err != nil {
+			logger.Log.Info("Error in SaveTx", zap.Error(err))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		// сохранение URL в файл
+		err = hd.Files.FileSaveTx(InURLs, hd.BaseAdr)
+		if err != nil {
+			logger.Log.Info("Error in FileSaveTx", zap.Error(err))
+		}
 
+		// кодирование тела ответа
 		out, err := json.Marshal(OutBuff)
 		if err != nil {
 			logger.Log.Info("Wrong responce body", zap.Error(err))

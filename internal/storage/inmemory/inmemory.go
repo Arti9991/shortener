@@ -1,12 +1,9 @@
 package inmemory
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
 	"sync"
 
-	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/Arti9991/shortener/internal/storage/files"
@@ -64,34 +61,28 @@ func (d *Data) GetOrig(val string) (string, error) {
 }
 
 // множестевнное сохранение во внутреннюю память
-func (d *Data) SaveTx(dec *json.Decoder, BaseAdr string) (models.OutBuff, error) {
-	var IncomeURL models.BatchIncomeURL
+func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error) {
+
 	var OutBuff models.OutBuff
 
-	for dec.More() {
-		err := dec.Decode(&IncomeURL)
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, err
-		}
-		hashStr := models.RandomString(8)
+	for _, income := range InURLs {
+		hashStr := income.Hash
 
 		// сохраняем URL в памяти
 		_, ok := d.ShortUrls[hashStr]
 		if !ok {
-			d.ShortUrls[hashStr] = IncomeURL.URL
+			d.ShortUrls[hashStr] = income.URL
 		}
 
-		// сохранение URL в файле
-		err = d.File.FileSave(hashStr, IncomeURL.URL)
-		if err != nil {
-			logger.Log.Info("Error in safe to File")
-		}
+		// // сохранение URL в файле
+		// err = d.File.FileSave(hashStr, IncomeURL.URL)
+		// if err != nil {
+		// 	logger.Log.Info("Error in safe to File")
+		// }
 
 		var OutURL models.BatchOutURL
 		OutURL.ShortURL = BaseAdr + "/" + hashStr
-		OutURL.CorrID = IncomeURL.CorrID
+		OutURL.CorrID = income.CorrID
 
 		OutBuff = append(OutBuff, OutURL)
 	}
