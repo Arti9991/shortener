@@ -138,6 +138,11 @@ func (db *DBStor) GetUser(UserID string, BaseAdr string) (models.UserBuff, error
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
+	if len(OutBuff) == 0 {
+		return nil, models.ErrorNoUserURL
+	}
+
 	return OutBuff, nil
 }
 

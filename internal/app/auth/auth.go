@@ -20,20 +20,28 @@ var key = []byte{183, 21, 219, 229, 199, 223, 64, 207, 94, 48, 138, 6, 9, 250, 1
 
 func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		var UserExist = false
+		var UserExist bool
 		var UserID string
 
 		cookie, err := req.Cookie(UserSession)
-		if err == nil {
+		if err != nil {
+			if err == models.NoUserInCookie {
+				UserExist = false
+			} else {
+				logger.Log.Info("Error in cookie", zap.Error(err))
+				res.WriteHeader(http.StatusBadRequest)
+			}
+		} else {
 			UserID, err = DecodeUserID(cookie.Value)
 			if err != nil {
 				logger.Log.Info("Error in Decoding", zap.Error(err))
+				UserExist = false
+			} else {
+				UserExist = true
 			}
-			UserExist = true
 		}
 
 		if !UserExist {
-			//UserID = uuid.NewString()
 			UserID = models.RandomString(16)
 			UserEnc, err := EncodeUserID(UserID)
 			if err != nil {
@@ -44,6 +52,8 @@ func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
 				Value: UserEnc,
 			}
 			http.SetCookie(res, cookie)
+			res.WriteHeader(http.StatusUnauthorized)
+			return
 		}
 		//fmt.Printf("\n\nUserID in context: %s\n\n", UserID)
 		ctx := context.WithValue(req.Context(), ctxKey, UserID)
