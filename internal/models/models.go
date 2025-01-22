@@ -54,4 +54,3 @@ func RandomString(n int) string {
 
 var ErrorNoUserURL = errors.New("not found urls for this user")
 var ErrorNoURL = errors.New("no such url in memory")
-var NoUserInCookie = errors.New("http: named cookie not present")
