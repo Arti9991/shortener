@@ -1,6 +1,10 @@
 package models
 
-import "golang.org/x/exp/rand"
+import (
+	"errors"
+
+	"golang.org/x/exp/rand"
+)
 
 type BatchIncomeURL struct {
 	CorrID string `json:"correlation_id"`
@@ -38,3 +42,6 @@ func RandomString(n int) string {
 
 	return string(bt)
 }
+
+var ErrorNoUserURL = errors.New("Not found URLs for this user")
+var ErrorNoURL = errors.New("no such URL in memory")

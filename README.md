@@ -61,7 +61,7 @@ Ping запрос для проверки подключения к базе д�
 curl -v GET http://localhost:8082/ping
 ```
 
-Ручной запрос для проверки множественного пост
+Ручной запрос для проверки множественного POST:
 ```
 curl -v -X POST -H "Content-Type: application/json" -d '[
 {"correlation_id":"ID","original_url":"www.ya.ru"},
@@ -71,7 +71,34 @@ curl -v -X POST -H "Content-Type: application/json" -d '[
 {"correlation_id":"ID","original_url":"www.Mya.ru"}]' http://localhost:8082/api/shorten/batch
 ```
 
-Запуск основного серверева с соединение к БД, но без сохранений в файлах (для файлов добавить флаг `-f=./storage.csv`)
+POST запрос c установленными cookie:
+
 ```
- DATABASE_DSN="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable" ./shortener.exe -a :8082
+curl -v -X POST -H "Content-Type: text/plain" --cookie "userID=<cookie>" -d www.ya.ru http://localhost:8082
+```
+
+POST запрос с JSON и установленными cookie:
+
+```
+curl -v -X POST -H "Content-Type: application/json" --cookie "userID=<cookie>" -d "{\"url\":\"www.Nya.ru\"}" http://localhost:8082/api/shorten
+```
+
+GET запрос для получения всех URL когда-либо сокращенных пользователем:
+```
+curl -v GET  --cookie "userID=<cookie>" http://localhost:8082/api/user/urls 
+```
+
+Ручной запрос для проверки множественного POST с cookie:
+```
+curl -v -X POST -H "Content-Type: application/json" --cookie "userID=<cookie>" -d '[
+{"correlation_id":"ID","original_url":"www.ya.ru"},
+{"correlation_id":"ID","original_url":"www.dlya.ru"},
+{"correlation_id":"ID","original_url":"www.Nya.ru"},
+{"correlation_id":"ID","original_url":"www.Qya.ru"},
+{"correlation_id":"ID","original_url":"www.Mya.ru"}]' http://localhost:8082/api/shorten/batch
+```
+
+Запуск основного серверева с соединение к БД, но без сохранений в файлах (для файлов добавить флаг `-f=./storage.csv`):
+```
+DATABASE_DSN="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable" ./shortener.exe -a :8082
  ```

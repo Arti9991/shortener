@@ -1,7 +1,6 @@
 package inmemory
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/Arti9991/shortener/internal/models"
@@ -42,7 +41,7 @@ func (d *Data) Get(key string) (string, error) {
 	d.Lock()
 	defer d.Unlock()
 	if d.ShortUrls[key] == "" {
-		return "", errors.New("no such URL in memory")
+		return "", models.ErrorNoURL
 	} else {
 		return d.ShortUrls[key], nil
 	}
@@ -57,7 +56,7 @@ func (d *Data) GetOrig(val string) (string, error) {
 			return key, nil
 		}
 	}
-	return "", errors.New("no such URL in map")
+	return "", models.ErrorNoURL
 }
 
 // получение оригнального URL по сокращенному
@@ -70,6 +69,9 @@ func (d *Data) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
 		orig := d.ShortUrls[hash]
 		short := BaseAdr + "/" + hash
 		OutBuff = append(OutBuff, models.UserURL{ShortURL: short, OrigURL: orig})
+	}
+	if len(OutBuff) == 0 {
+		return nil, models.ErrorNoUserURL
 	}
 	return OutBuff, nil
 }

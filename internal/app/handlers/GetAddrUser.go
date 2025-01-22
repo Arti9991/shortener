@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"go.uber.org/zap"
 )
 
@@ -20,10 +20,18 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 		var err error
 
 		UserID := req.Context().Value(UserKey).(string)
-		fmt.Println(UserID)
+		//fmt.Println(UserID)
 
+		if UserID == "" {
+			res.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		OutBuff, err := hd.Dt.GetUser(UserID, hd.BaseAdr)
-		if err != nil {
+		//fmt.Println(err)
+		if err == models.ErrorNoUserURL {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		} else if err != nil {
 			logger.Log.Info("Error im GET method!", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
 			return

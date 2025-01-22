@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Arti9991/shortener/internal/app/auth"
+	"github.com/Arti9991/shortener/internal/models"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
 	"github.com/Arti9991/shortener/internal/storage/mocks"
@@ -494,6 +495,10 @@ func TestPostBatch(t *testing.T) {
 			request.Header.Add("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(PostBatch(hd))
+
+			ctx1 := context.WithValue(request.Context(), key, UserID)
+			request = request.WithContext(ctx1)
+
 			h(w, request)
 
 			result := w.Result()
@@ -512,6 +517,121 @@ func TestPostBatch(t *testing.T) {
 				assert.Equal(t, test.want.answers[i], inmem)
 			}
 			err = result.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+
+	type want struct {
+		statusCode int
+		answer     models.UserBuff
+		err        error
+	}
+	tests := []struct {
+		name    string
+		hash    string
+		userID  string
+		request string
+		want    want
+	}{
+		{
+			name:    "Simple request for code 200",
+			hash:    "DxDfgvDa",
+			userID:  "125",
+			request: "/api/user/urls",
+			want: want{
+				statusCode: 200,
+				answer: []models.UserURL{
+					{OrigURL: "www.ya.ru"},
+				},
+				err: nil,
+			},
+		},
+		{
+			name:    "Long request for code 200",
+			hash:    "FXFGaseD",
+			userID:  "125",
+			request: "/api/user/urls",
+			want: want{
+				statusCode: 200,
+				answer: []models.UserURL{
+					{OrigURL: "/env/local/path_slide/beta"},
+				},
+				err: nil,
+			},
+		},
+		{
+			name:    "Many user URLs request for code 200",
+			hash:    "FXFGaseD",
+			userID:  "125",
+			request: "/api/user/urls",
+			want: want{
+				statusCode: 200,
+				answer: []models.UserURL{
+					{OrigURL: "www.ya.ru"},
+					{OrigURL: "/env/local/path_slide/beta"},
+					{OrigURL: "empty/clown"},
+					{OrigURL: "easy"},
+					{OrigURL: "/env/local/path_slide/beta/miultiple/twice/long"},
+				},
+				err: nil,
+			},
+		},
+
+		{
+			name:    "Test for error with good UserID and no URLs",
+			hash:    "SAGREVad",
+			userID:  "150",
+			request: "/api/user/urls",
+			want: want{
+				statusCode: 204,
+				answer:     nil,
+				err:        models.ErrorNoUserURL,
+			},
+		},
+		{
+			name:    "Test for error with bad userID",
+			hash:    "SAGREVad",
+			userID:  "",
+			request: "/api/user/urls",
+			want: want{
+				statusCode: 401,
+				answer:     nil,
+				err:        models.ErrorNoUserURL,
+			},
+		},
+	}
+	for _, test := range tests {
+		// задаем режим рабоыт моков (для GET проверяем полученные файлы)
+		m.EXPECT().
+			GetUser(test.userID, BaseAdr).
+			Return(test.want.answer, test.want.err).
+			MaxTimes(5)
+
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, test.request, nil)
+
+			ctx := context.WithValue(request.Context(), key, test.userID)
+			request = request.WithContext(ctx)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(GetAddrUser(hd))
+			h(w, request)
+			result := w.Result()
+			assert.Equal(t, test.want.statusCode, result.StatusCode)
+			//assert.Equal(t, test.want.answer, result.Header.Get("Location"))
+
+			err := result.Body.Close()
 			require.NoError(t, err)
 		})
 	}

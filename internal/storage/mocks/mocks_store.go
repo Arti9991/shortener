@@ -64,6 +64,21 @@ func (mr *MockStorFuncMockRecorder) GetOrig(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrig", reflect.TypeOf((*MockStorFunc)(nil).GetOrig), arg0)
 }
 
+// GetUser mocks base method.
+func (m *MockStorFunc) GetUser(arg0, arg1 string) (models.UserBuff, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", arg0, arg1)
+	ret0, _ := ret[0].(models.UserBuff)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockStorFuncMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockStorFunc)(nil).GetUser), arg0, arg1)
+}
+
 // Ping mocks base method.
 func (m *MockStorFunc) Ping() error {
 	m.ctrl.T.Helper()

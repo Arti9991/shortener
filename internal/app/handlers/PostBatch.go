@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -26,7 +25,7 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 		}
 
 		UserID := req.Context().Value(UserKey).(string)
-		fmt.Println(UserID)
+		//fmt.Println(UserID)
 
 		body, err := io.ReadAll(req.Body)
 		if err != nil {

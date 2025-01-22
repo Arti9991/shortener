@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -27,7 +26,7 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 		}
 
 		UserID := req.Context().Value(UserKey).(string)
-		fmt.Println(UserID)
+		//fmt.Println(UserID)
 		//UserID := "1"
 		//генерация рандомной строки
 		hashStr := randomString(8)
