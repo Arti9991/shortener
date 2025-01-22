@@ -12,9 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type KeyContext string
-
-var ctxKey = KeyContext("UserID")
 var UserSession = "userID"
 var key = []byte{183, 21, 219, 229, 199, 223, 64, 207, 94, 48, 138, 6, 9, 250, 124, 17}
 
@@ -25,12 +22,7 @@ func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
 
 		cookie, err := req.Cookie(UserSession)
 		if err != nil {
-			if err == models.NoUserInCookie {
-				UserExist = false
-			} else {
-				logger.Log.Info("Error in cookie", zap.Error(err))
-				res.WriteHeader(http.StatusBadRequest)
-			}
+			UserExist = false
 		} else {
 			UserID, err = DecodeUserID(cookie.Value)
 			if err != nil {
@@ -52,30 +44,14 @@ func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
 				Value: UserEnc,
 			}
 			http.SetCookie(res, cookie)
-			res.WriteHeader(http.StatusUnauthorized)
-			return
 		}
 		//fmt.Printf("\n\nUserID in context: %s\n\n", UserID)
-		ctx := context.WithValue(req.Context(), ctxKey, UserID)
+		ctx := context.WithValue(req.Context(), models.CtxKey, models.UserInfo{UserID: UserID, Register: UserExist})
 		req = req.WithContext(ctx)
 		// передаём управление хендлеру
 		h.ServeHTTP(res, req)
 	}
 }
-
-//TODO: доделать авторизацию через куки с симметричным шифрованием
-// на данный момент авторизация заменена заглушкой UserID
-
-// func generateRandom(size int) ([]byte, error) {
-// 	// генерируем криптостойкие случайные байты в b
-// 	b := make([]byte, size)
-// 	_, err := rand.Read(b)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return b, nil
-// }
 
 func MakeCiper() (cipher.Block, error) {
 	// получаем cipher.Block

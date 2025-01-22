@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 )
@@ -25,7 +26,8 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
-		UserID := req.Context().Value(UserKey).(string)
+		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
+		UserID := UserInfo.UserID
 		//fmt.Println(UserID)
 		//UserID := "1"
 		//генерация рандомной строки

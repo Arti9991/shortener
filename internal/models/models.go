@@ -32,6 +32,15 @@ type UserURL struct {
 }
 type UserBuff []UserURL
 
+type KeyContext string
+
+var CtxKey = KeyContext("UserID")
+
+type UserInfo struct {
+	UserID   string
+	Register bool
+}
+
 func RandomString(n int) string {
 
 	var bt []byte

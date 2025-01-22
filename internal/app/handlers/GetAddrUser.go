@@ -19,10 +19,12 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 		}
 		var err error
 
-		UserID := req.Context().Value(UserKey).(string)
+		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
+		UserID := UserInfo.UserID
+		IsExist := UserInfo.Register
 		//fmt.Println(UserID)
 
-		if UserID == "" {
+		if !IsExist {
 			res.WriteHeader(http.StatusUnauthorized)
 			return
 		}

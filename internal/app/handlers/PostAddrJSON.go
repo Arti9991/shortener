@@ -35,7 +35,8 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
-		UserID := req.Context().Value(UserKey).(string)
+		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
+		UserID := UserInfo.UserID
 		//fmt.Println(UserID)
 		//генерация рандомной строки
 		hashStr := randomString(8)

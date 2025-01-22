@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/models"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
@@ -29,8 +28,6 @@ import (
 
 var BaseAdr = "http://example.com"
 var Files = files.FilesTest()
-
-var key = auth.KeyContext("UserID")
 
 var UserID = "125"
 
@@ -96,7 +93,7 @@ func TestPostAddr(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(test.body))
 
-			ctx := context.WithValue(request.Context(), key, UserID)
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
 			request = request.WithContext(ctx)
 
 			w := httptest.NewRecorder()
@@ -173,7 +170,7 @@ func TestPostAddrJSON(t *testing.T) {
 			}{}
 			request := httptest.NewRequest(http.MethodPost, test.request, bytes.NewBuffer([]byte(test.income)))
 
-			ctx := context.WithValue(request.Context(), key, UserID)
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
 			request = request.WithContext(ctx)
 
 			request.Header.Add("Content-Type", "application/json")
@@ -271,7 +268,7 @@ func TestGet(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
 
-			ctx := context.WithValue(request.Context(), key, UserID)
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
 			request = request.WithContext(ctx)
 
 			w := httptest.NewRecorder()
@@ -367,7 +364,7 @@ func TestMultuplTasks(t *testing.T) {
 			for _, body := range test.bodys {
 				request1 := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(body))
 
-				ctx1 := context.WithValue(request1.Context(), key, UserID)
+				ctx1 := context.WithValue(request1.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
 				request1 = request1.WithContext(ctx1)
 
 				w1 := httptest.NewRecorder()
@@ -394,7 +391,7 @@ func TestMultuplTasks(t *testing.T) {
 			for i, loc := range test.want.locations {
 				request2 := httptest.NewRequest(http.MethodGet, strResults[i], nil)
 
-				ctx2 := context.WithValue(request2.Context(), key, UserID)
+				ctx2 := context.WithValue(request2.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
 				request2 = request2.WithContext(ctx2)
 
 				w2 := httptest.NewRecorder()
@@ -496,8 +493,8 @@ func TestPostBatch(t *testing.T) {
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(PostBatch(hd))
 
-			ctx1 := context.WithValue(request.Context(), key, UserID)
-			request = request.WithContext(ctx1)
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
 
 			h(w, request)
 
@@ -536,17 +533,19 @@ func TestGetUser(t *testing.T) {
 		err        error
 	}
 	tests := []struct {
-		name    string
-		hash    string
-		userID  string
-		request string
-		want    want
+		name     string
+		hash     string
+		userID   string
+		register bool
+		request  string
+		want     want
 	}{
 		{
-			name:    "Simple request for code 200",
-			hash:    "DxDfgvDa",
-			userID:  "125",
-			request: "/api/user/urls",
+			name:     "Simple request for code 200",
+			hash:     "DxDfgvDa",
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
 			want: want{
 				statusCode: 200,
 				answer: []models.UserURL{
@@ -556,10 +555,11 @@ func TestGetUser(t *testing.T) {
 			},
 		},
 		{
-			name:    "Long request for code 200",
-			hash:    "FXFGaseD",
-			userID:  "125",
-			request: "/api/user/urls",
+			name:     "Long request for code 200",
+			hash:     "FXFGaseD",
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
 			want: want{
 				statusCode: 200,
 				answer: []models.UserURL{
@@ -569,10 +569,11 @@ func TestGetUser(t *testing.T) {
 			},
 		},
 		{
-			name:    "Many user URLs request for code 200",
-			hash:    "FXFGaseD",
-			userID:  "125",
-			request: "/api/user/urls",
+			name:     "Many user URLs request for code 200",
+			hash:     "FXFGaseD",
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
 			want: want{
 				statusCode: 200,
 				answer: []models.UserURL{
@@ -587,10 +588,11 @@ func TestGetUser(t *testing.T) {
 		},
 
 		{
-			name:    "Test for error with good UserID and no URLs",
-			hash:    "SAGREVad",
-			userID:  "150",
-			request: "/api/user/urls",
+			name:     "Test for error with good UserID and no URLs",
+			hash:     "SAGREVad",
+			userID:   "150",
+			register: true,
+			request:  "/api/user/urls",
 			want: want{
 				statusCode: 204,
 				answer:     nil,
@@ -598,10 +600,11 @@ func TestGetUser(t *testing.T) {
 			},
 		},
 		{
-			name:    "Test for error with bad userID",
-			hash:    "SAGREVad",
-			userID:  "",
-			request: "/api/user/urls",
+			name:     "Test for error with bad userID",
+			hash:     "SAGREVad",
+			userID:   "150",
+			register: false,
+			request:  "/api/user/urls",
 			want: want{
 				statusCode: 401,
 				answer:     nil,
@@ -621,7 +624,10 @@ func TestGetUser(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
 
-			ctx := context.WithValue(request.Context(), key, test.userID)
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{
+				UserID:   test.userID,
+				Register: test.register,
+			})
 			request = request.WithContext(ctx)
 
 			w := httptest.NewRecorder()

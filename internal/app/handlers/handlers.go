@@ -1,13 +1,10 @@
 package handlers
 
 import (
-	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"golang.org/x/exp/rand"
 )
-
-var UserKey = auth.KeyContext("UserID")
 
 func randomString(n int) string {
 
