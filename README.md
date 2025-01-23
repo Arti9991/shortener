@@ -31,21 +31,47 @@ git fetch template && git checkout template/main .github
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
 
+Например, запуск тестов для iter12 из под GitBash для windows. 
+```
+shortenertest -test.v -test.run=^TestIteration12$ -binary-path=cmd/shortener/shortener -database-dsn="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
+```
+
 Комманды для ручной проверки сервера (на данной итерации)
 
 Стартовый POST запрос в cURL:
 
 ```
-curl -v -X POST -H "Content-Type: text/plain" -d www.ya.ru http://localhost:8080
+curl -v -X POST -H "Content-Type: text/plain" -d www.ya.ru http://localhost:8082
 ```
 
 POST запрос c JSON в cURL:
 ```
-curl -v -X POST -H "Content-Type: application/json" -d "{\"url\":\"www.ya.ru\"}" http://localhost:8080/api/shorten
+curl -v -X POST -H "Content-Type: application/json" -d "{\"url\":\"www.ya.ru\"}" http://localhost:8082/api/shorten
 ```
 
 Get запрос для извлечения ссылки в заголовке location:
 
 ```
-curl -v GET -H "Content-Type: text/plain" http://localhost:8080/<id>
+curl -v GET -H "Content-Type: text/plain" http://localhost:8082/<id>
 ```
+
+Ping запрос для проверки подключения к базе данных:
+
+```
+curl -v GET http://localhost:8082/ping
+```
+
+Ручной запрос для проверки множественного пост
+```
+curl -v -X POST -H "Content-Type: application/json" -d '[
+{"correlation_id":"ID","original_url":"www.ya.ru"},
+{"correlation_id":"ID","original_url":"www.dlya.ru"},
+{"correlation_id":"ID","original_url":"www.Nya.ru"},
+{"correlation_id":"ID","original_url":"www.Qya.ru"},
+{"correlation_id":"ID","original_url":"www.Mya.ru"}]' http://localhost:8082/api/shorten/batch
+```
+
+Запуск основного серверева с соединение к БД, но без сохранений в файлах (для файлов добавить флаг `-f=./storage.csv`)
+```
+ DATABASE_DSN="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable" ./shortener.exe -a :8082
+ ```
