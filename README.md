@@ -102,3 +102,7 @@ curl -v -X POST -H "Content-Type: application/json" --cookie "userID=<cookie>" -
 ```
 DATABASE_DSN="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable" ./shortener.exe -a :8082
  ```
+
+```
+curl -v -X DELETE -H "Content-Type: application/json" --cookie "userID=<cookie>" -d '["6qxTVvsy", "RTfd56hn", "Jlfd67ds"]' http://localhost:8082/
+```

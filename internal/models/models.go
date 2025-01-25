@@ -41,6 +41,13 @@ type UserInfo struct {
 	Register bool
 }
 
+type DeleteURL struct {
+	ShortURL []string
+	UserID   string `json:"-"`
+}
+
+//type DeleteBuff []DeleteURL
+
 func RandomString(n int) string {
 
 	var bt []byte
@@ -54,3 +61,4 @@ func RandomString(n int) string {
 
 var ErrorNoUserURL = errors.New("not found urls for this user")
 var ErrorNoURL = errors.New("no such url in memory")
+var ErrorDeleted = errors.New("was deleted")

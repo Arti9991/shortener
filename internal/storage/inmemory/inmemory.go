@@ -1,6 +1,7 @@
 package inmemory
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/Arti9991/shortener/internal/models"
@@ -109,6 +110,11 @@ func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, err
 // заглушка функции ping для реализации DuckType
 func (d *Data) Ping() error {
 	return nil
+}
+
+// добавление пары ключ (сокращенный URL) - значение (исходный URL)
+func (d *Data) Delete(key string, UserID string) error {
+	return errors.New("unable for inmemory mode")
 }
 
 // сброс всех значений в карте

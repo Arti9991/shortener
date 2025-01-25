@@ -10,5 +10,6 @@ type StorFunc interface {
 	GetOrig(string) (string, error)
 	GetUser(string, string) (models.UserBuff, error)
 	SaveTx(models.InBuff, string) (models.OutBuff, error)
+	Delete(string, string) error
 	Ping() error
 }

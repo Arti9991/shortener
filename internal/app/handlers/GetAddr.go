@@ -5,6 +5,7 @@ import (
 	"path"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"go.uber.org/zap"
 )
 
@@ -20,12 +21,12 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 
 		ident := path.Base(req.URL.String())
 		redir, err := hd.Dt.Get(ident)
-		if err != nil {
-			logger.Log.Info("Error im GET method!", zap.String("ID", ident), zap.Error(err))
-			res.WriteHeader(http.StatusBadRequest)
+		if err == models.ErrorDeleted {
+			logger.Log.Info("URL was delted", zap.String("ID", ident))
+			res.WriteHeader(http.StatusGone)
 			return
-		} else if redir == "" {
-			logger.Log.Info("There is no such identifier!", zap.String("ID", ident))
+		} else if err != nil {
+			logger.Log.Info("Error im GET method!", zap.String("ID", ident), zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
