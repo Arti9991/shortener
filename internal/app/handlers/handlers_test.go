@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -242,7 +241,7 @@ func TestGet(t *testing.T) {
 			want: want{
 				statusCode: 400,
 				answer:     "",
-				err:        errors.New("no such URL in memory"),
+				err:        models.ErrorNoURL,
 			},
 		},
 		{
@@ -252,7 +251,7 @@ func TestGet(t *testing.T) {
 			want: want{
 				statusCode: 400,
 				answer:     "",
-				err:        errors.New("no such URL in memory"),
+				err:        models.ErrorNoURL,
 			},
 		},
 	}
@@ -534,7 +533,6 @@ func TestGetUser(t *testing.T) {
 	}
 	tests := []struct {
 		name     string
-		hash     string
 		userID   string
 		register bool
 		request  string
@@ -542,7 +540,6 @@ func TestGetUser(t *testing.T) {
 	}{
 		{
 			name:     "Simple request for code 200",
-			hash:     "DxDfgvDa",
 			userID:   "125",
 			register: true,
 			request:  "/api/user/urls",
@@ -556,7 +553,6 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			name:     "Long request for code 200",
-			hash:     "FXFGaseD",
 			userID:   "125",
 			register: true,
 			request:  "/api/user/urls",
@@ -570,7 +566,6 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			name:     "Many user URLs request for code 200",
-			hash:     "FXFGaseD",
 			userID:   "125",
 			register: true,
 			request:  "/api/user/urls",
@@ -589,7 +584,6 @@ func TestGetUser(t *testing.T) {
 
 		{
 			name:     "Test for error with good UserID and no URLs",
-			hash:     "SAGREVad",
 			userID:   "150",
 			register: true,
 			request:  "/api/user/urls",
@@ -601,7 +595,6 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			name:     "Test for error with bad userID",
-			hash:     "SAGREVad",
 			userID:   "150",
 			register: false,
 			request:  "/api/user/urls",
@@ -632,6 +625,80 @@ func TestGetUser(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(GetAddrUser(hd))
+			h(w, request)
+			result := w.Result()
+			assert.Equal(t, test.want.statusCode, result.StatusCode)
+			//assert.Equal(t, test.want.answer, result.Header.Get("Location"))
+
+			err := result.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+
+	type want struct {
+		statusCode int
+		err        error
+	}
+	tests := []struct {
+		name     string
+		hashes   string
+		userID   string
+		register bool
+		request  string
+		want     want
+	}{
+		{
+			name:     "Simple request for code 202",
+			hashes:   `["wmmROXSv"]`,
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 202,
+				err:        nil,
+			},
+		},
+		{
+			name:     "Many user URLs request for code 202",
+			hashes:   `["wmmROXSv","QGtxHvUY","xfZRudbp", "oezaHfOQ", "WsStBGYJ"]`,
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 202,
+				err:        nil,
+			},
+		},
+	}
+	for _, test := range tests {
+		// задаем режим рабоыт моков (для GET проверяем полученные файлы)
+		m.EXPECT().
+			Delete(gomock.Any(), test.userID).
+			Return(test.want.err).
+			MaxTimes(5)
+
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodDelete, test.request, bytes.NewBuffer([]byte(test.hashes)))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{
+				UserID:   test.userID,
+				Register: test.register,
+			})
+			request = request.WithContext(ctx)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(DeleteAddr(hd))
 			h(w, request)
 			result := w.Result()
 			assert.Equal(t, test.want.statusCode, result.StatusCode)

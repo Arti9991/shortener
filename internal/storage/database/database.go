@@ -209,12 +209,8 @@ func (db *DBStor) Delete(key string, UserID string) error {
 	var err error
 	_, err = db.DB.Exec(QuerryDeleteURL, UserID, key)
 	if err != nil {
-		if db.CodeIsUniqueViolation(err) {
-			return err
-		} else {
-			db.InFiles = true
-			return err
-		}
+		db.InFiles = true
+		return err
 	}
 	return nil
 }
