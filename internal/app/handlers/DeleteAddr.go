@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// хэндлер для получения оригинального URL по укороченному
+// хэндлер для пометки URL как удаленного в базе данных
 func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodDelete {
@@ -18,69 +18,47 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		//var err error
 
+		// получение из контекста UserID и информации о регистрации
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
 		IsExist := UserInfo.Register
-
+		// если пользователь не существует, устанавливается соответствующий статус
 		if !IsExist {
 			res.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
-		// body, err := io.ReadAll(req.Body)
-		// if err != nil || string(body) == "" {
-		// 	logger.Log.Info("Bad request body", zap.String("body", string(body)))
-		// 	res.WriteHeader(http.StatusBadRequest)
-		// 	return
-		// }
-
-		//var DeleteURLURLs models.DeleteBuff
-		chDec, err := ThreadDecode(req.Body)
+		// чтение тела запроса с URL подлежащими удалению
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			logger.Log.Info("Bad request body", zap.Error(err))
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		// функция для запуска горутины и отправки структуры в канал
+		err = ThreadDecode(body, UserID, hd.OutDelCh)
 		if err != nil {
 			logger.Log.Info("Error in ThreadDecode", zap.Error(err))
 		}
-
-		ThreadDelete(hd, UserID, chDec)
 
 		res.WriteHeader(http.StatusAccepted)
 	}
 }
 
-func ThreadDecode(Data io.ReadCloser) (chan string, error) {
-	outCh := make(chan string)
-	dec := json.NewDecoder(Data)
-	// сдвигаем декодер
-	_, err := dec.Token()
-	if err != nil {
-		return nil, err
-	}
-	go func() {
-		defer close(outCh)
-		for dec.More() {
-			var DeleteURLURLs string
-			err := dec.Decode(&DeleteURLURLs) // (2)
-			if err == io.EOF {
-				return
-			} else if err != nil {
-				logger.Log.Info("Error in decode function", zap.Error(err))
-				return
-			}
-			outCh <- DeleteURLURLs
-		}
-	}()
-	return outCh, nil
-}
+// функция с горутиной, считывающей данные из тела запроса, декдоированием из JSON
+// и отправки данных в канал
+func ThreadDecode(body []byte, UserID string, outCh chan models.DeleteURL) error {
 
-func ThreadDelete(hd *HandlersData, UserID string, DelURL chan string) {
-	for URL := range DelURL {
-		go func(UsID string) {
-			err := hd.Dt.Delete(URL, UserID)
-			if err != nil {
-				logger.Log.Info("Error in delete function", zap.Error(err))
-				return
-			}
-		}(UserID)
-	}
+	go func() {
+		var InURLs models.DeleteURL
+		// декодирование тела запроса
+		err := json.Unmarshal(body, &InURLs.ShortURL)
+		if err != nil {
+			logger.Log.Info("Bad request unmarshall", zap.Error(err))
+			return
+		}
+		InURLs.UserID = UserID
+		outCh <- InURLs
+	}()
+	return nil
 }

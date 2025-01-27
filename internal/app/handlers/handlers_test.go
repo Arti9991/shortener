@@ -29,6 +29,7 @@ var BaseAdr = "http://example.com"
 var Files = files.FilesTest()
 
 var UserID = "125"
+var DeleteChan = make(chan models.DeleteURL)
 
 func TestPostAddr(t *testing.T) {
 	// создаём контроллер
@@ -43,7 +44,7 @@ func TestPostAddr(t *testing.T) {
 		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(1)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode  int
@@ -127,7 +128,7 @@ func TestPostAddrJSON(t *testing.T) {
 		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(2)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode  int
@@ -262,7 +263,7 @@ func TestGet(t *testing.T) {
 			Return(test.want.answer, test.want.err).
 			MaxTimes(1)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
@@ -285,7 +286,7 @@ func TestGet(t *testing.T) {
 
 func TestMultuplTasks(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest())
+	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode1  int
@@ -412,7 +413,7 @@ func TestMultuplTasks(t *testing.T) {
 
 func TestPostBatch(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest())
+	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode  int
@@ -612,7 +613,7 @@ func TestGetUser(t *testing.T) {
 			Return(test.want.answer, test.want.err).
 			MaxTimes(5)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
@@ -680,13 +681,13 @@ func TestDelete(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		// задаем режим рабоыт моков (для GET проверяем полученные файлы)
+		// задаем режим рабоыт моков (для GET проверяем полученные данные)
 		m.EXPECT().
 			Delete(gomock.Any(), test.userID).
 			Return(test.want.err).
 			MaxTimes(5)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodDelete, test.request, bytes.NewBuffer([]byte(test.hashes)))

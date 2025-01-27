@@ -99,7 +99,7 @@ curl -v -X POST -H "Content-Type: application/json" --cookie "userID=<cookie>" -
 ```
 Удаление URL, ранее сохраненных пользователем
 ```
-curl -v -X DELETE -H "Content-Type: application/json" --cookie "userID=<cookie>" -d '["6qxTVvsy", "RTfd56hn", "Jlfd67ds"]' http://localhost:8082/
+curl -v -X DELETE -H "Content-Type: application/json" --cookie "userID=<cookie>" -d '["6qxTVvsy", "RTfd56hn", "Jlfd67ds"]' http://localhost:8082/api/user/urls
 ```
 
 Запуск основного серверева с соединение к БД, но без сохранений в файлах (для файлов добавить флаг `-f=./storage.csv`):

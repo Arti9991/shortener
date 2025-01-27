@@ -29,7 +29,7 @@ var QuerryGetOrig = `SELECT hash_id
 var QuerryGetUser = `SELECT hash_id, income_url
 	FROM urls WHERE user_id = $1;`
 var QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
-	WHERE user_id = ($1) AND hash_id = ($2);`
+	WHERE user_id = ($1) AND hash_id = ANY($2);`
 
 type DBStor struct {
 	storage.StorFunc
@@ -119,6 +119,7 @@ func (db *DBStor) GetOrig(val string) (string, error) {
 	return key, nil
 }
 
+// получение всех сокращенных и оригинальных URL для конкретного пользователя
 func (db *DBStor) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
 	if db.InFiles {
 		return nil, nil
@@ -201,13 +202,14 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 	return OutBuff, nil
 }
 
-func (db *DBStor) Delete(key string, UserID string) error {
+// проставление флагов в базу о том, что URL удален из базы данных
+func (db *DBStor) Delete(keys []string, UserID string) error {
 	if db.InFiles {
 		return nil
 	}
 
 	var err error
-	_, err = db.DB.Exec(QuerryDeleteURL, UserID, key)
+	_, err = db.DB.Exec(QuerryDeleteURL, UserID, keys)
 	if err != nil {
 		db.InFiles = true
 		return err

@@ -19,16 +19,17 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 		}
 		var err error
 
+		// получение из контекста UserID и информации о регистрации
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
 		IsExist := UserInfo.Register
-
+		// установка заголовка ответа для незарегистрированного пользователя
 		if !IsExist {
 			res.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+		// получение всех сокращенных URL для данного пользователя из базы или памяти
 		OutBuff, err := hd.Dt.GetUser(UserID, hd.BaseAdr)
-		//fmt.Println(err)
 		if err == models.ErrorNoUserURL {
 			res.WriteHeader(http.StatusNoContent)
 			return
@@ -37,11 +38,6 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		// } else if redir == "" {
-		// 	logger.Log.Info("There is no such identifier!", zap.String("ID", ident))
-		// 	res.WriteHeader(http.StatusBadRequest)
-		// 	return
-		// }
 
 		// кодирование тела ответа
 		out, err := json.Marshal(OutBuff)

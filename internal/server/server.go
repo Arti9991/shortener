@@ -63,17 +63,21 @@ func RunServer() error {
 	if err != nil {
 		return err
 	}
+	defer close(serv.hd.OutDelCh)
 
 	logger.Log.Info("New server initialyzed!",
 		zap.String("Server addres:", serv.Config.HostAdr),
 		zap.String("Base addres:", serv.Config.BaseAdr),
 	)
 
-	//чтение всех данных из файла в память
+	// чтение всех данных из файла в память
 	err = serv.FileRead(serv.hd.Files)
 	if err != nil {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}
+
+	// запуск горутины (описана в initStor.go)
+	RunDeleteStor(*serv.hd)
 
 	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
 	return err

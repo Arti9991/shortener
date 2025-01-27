@@ -60,7 +60,7 @@ func (d *Data) GetOrig(val string) (string, error) {
 	return "", models.ErrorNoURL
 }
 
-// получение оригнального URL по сокращенному
+// получение всех сокращенных и оригинальных URL для конкретного пользователя
 func (d *Data) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
 	d.Lock()
 	defer d.Unlock()
@@ -112,8 +112,8 @@ func (d *Data) Ping() error {
 	return nil
 }
 
-// добавление пары ключ (сокращенный URL) - значение (исходный URL)
-func (d *Data) Delete(key string, UserID string) error {
+// заглушка для реализации интерфейса хранилища
+func (d *Data) Delete(keys []string, UserID string) error {
 	return errors.New("unable for inmemory mode")
 }
 
