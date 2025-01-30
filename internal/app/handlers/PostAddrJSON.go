@@ -35,10 +35,14 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
+		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
+		UserID := UserInfo.UserID
+		//fmt.Println(UserID)
+		//генерация рандомной строки
 		hashStr := randomString(8)
 
 		// сохранение URL в память или в базу
-		err = hd.Dt.Save(hashStr, IncomeURL.URL)
+		err = hd.Dt.Save(hashStr, IncomeURL.URL, UserID)
 		if err != nil {
 			logger.Log.Info("Error in Save", zap.Error(err))
 			if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {

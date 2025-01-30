@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Arti9991/shortener/internal/models"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
 	"github.com/Arti9991/shortener/internal/storage/mocks"
@@ -27,6 +28,9 @@ import (
 var BaseAdr = "http://example.com"
 var Files = files.FilesTest()
 
+var UserID = "125"
+var DeleteChan = make(chan models.DeleteURL)
+
 func TestPostAddr(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -37,10 +41,10 @@ func TestPostAddr(t *testing.T) {
 
 	// задаем режим рабоыт моков (для POST главное отсутствие ошибки)
 	m.EXPECT().
-		Save(gomock.Any(), gomock.Any()).
+		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(1)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode  int
@@ -88,6 +92,10 @@ func TestPostAddr(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(test.body))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(PostAddr(hd))
 			h(w, request)
@@ -117,10 +125,10 @@ func TestPostAddrJSON(t *testing.T) {
 	m := mocks.NewMockStorFunc(ctrl)
 	// задаем режим рабоыт моков (для POST главное отсутствие ошибки)
 	m.EXPECT().
-		Save(gomock.Any(), gomock.Any()).
+		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(2)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode  int
@@ -161,6 +169,10 @@ func TestPostAddrJSON(t *testing.T) {
 				Result string `json:"result"`
 			}{}
 			request := httptest.NewRequest(http.MethodPost, test.request, bytes.NewBuffer([]byte(test.income)))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
 			request.Header.Add("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(PostAddrJSON(hd))
@@ -230,7 +242,7 @@ func TestGet(t *testing.T) {
 			want: want{
 				statusCode: 400,
 				answer:     "",
-				err:        errors.New("no such URL in memory"),
+				err:        models.ErrorNoURL,
 			},
 		},
 		{
@@ -240,7 +252,7 @@ func TestGet(t *testing.T) {
 			want: want{
 				statusCode: 400,
 				answer:     "",
-				err:        errors.New("no such URL in memory"),
+				err:        models.ErrorNoURL,
 			},
 		},
 	}
@@ -251,10 +263,14 @@ func TestGet(t *testing.T) {
 			Return(test.want.answer, test.want.err).
 			MaxTimes(1)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest())
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(GetAddr(hd))
 			h(w, request)
@@ -270,7 +286,7 @@ func TestGet(t *testing.T) {
 
 func TestMultuplTasks(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest())
+	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode1  int
@@ -347,6 +363,10 @@ func TestMultuplTasks(t *testing.T) {
 			strResults := make([]string, 0)
 			for _, body := range test.bodys {
 				request1 := httptest.NewRequest(http.MethodPost, test.request, strings.NewReader(body))
+
+				ctx1 := context.WithValue(request1.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+				request1 = request1.WithContext(ctx1)
+
 				w1 := httptest.NewRecorder()
 				h1 := http.HandlerFunc(PostAddr(hd))
 				h1(w1, request1)
@@ -370,6 +390,10 @@ func TestMultuplTasks(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 			for i, loc := range test.want.locations {
 				request2 := httptest.NewRequest(http.MethodGet, strResults[i], nil)
+
+				ctx2 := context.WithValue(request2.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+				request2 = request2.WithContext(ctx2)
+
 				w2 := httptest.NewRecorder()
 				h2 := http.HandlerFunc(GetAddr(hd))
 				h2(w2, request2)
@@ -389,7 +413,7 @@ func TestMultuplTasks(t *testing.T) {
 
 func TestPostBatch(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest())
+	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode  int
@@ -468,6 +492,10 @@ func TestPostBatch(t *testing.T) {
 			request.Header.Add("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(PostBatch(hd))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
 			h(w, request)
 
 			result := w.Result()
@@ -486,6 +514,198 @@ func TestPostBatch(t *testing.T) {
 				assert.Equal(t, test.want.answers[i], inmem)
 			}
 			err = result.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+
+	type want struct {
+		statusCode int
+		answer     models.UserBuff
+		err        error
+	}
+	tests := []struct {
+		name     string
+		userID   string
+		register bool
+		request  string
+		want     want
+	}{
+		{
+			name:     "Simple request for code 200",
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 200,
+				answer: []models.UserURL{
+					{OrigURL: "www.ya.ru"},
+				},
+				err: nil,
+			},
+		},
+		{
+			name:     "Long request for code 200",
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 200,
+				answer: []models.UserURL{
+					{OrigURL: "/env/local/path_slide/beta"},
+				},
+				err: nil,
+			},
+		},
+		{
+			name:     "Many user URLs request for code 200",
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 200,
+				answer: []models.UserURL{
+					{OrigURL: "www.ya.ru"},
+					{OrigURL: "/env/local/path_slide/beta"},
+					{OrigURL: "empty/clown"},
+					{OrigURL: "easy"},
+					{OrigURL: "/env/local/path_slide/beta/miultiple/twice/long"},
+				},
+				err: nil,
+			},
+		},
+
+		{
+			name:     "Test for error with good UserID and no URLs",
+			userID:   "150",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 204,
+				answer:     nil,
+				err:        models.ErrorNoUserURL,
+			},
+		},
+		{
+			name:     "Test for error with bad userID",
+			userID:   "150",
+			register: false,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 401,
+				answer:     nil,
+				err:        models.ErrorNoUserURL,
+			},
+		},
+	}
+	for _, test := range tests {
+		// задаем режим рабоыт моков (для GET проверяем полученные файлы)
+		m.EXPECT().
+			GetUser(test.userID, BaseAdr).
+			Return(test.want.answer, test.want.err).
+			MaxTimes(5)
+
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, test.request, nil)
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{
+				UserID:   test.userID,
+				Register: test.register,
+			})
+			request = request.WithContext(ctx)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(GetAddrUser(hd))
+			h(w, request)
+			result := w.Result()
+			assert.Equal(t, test.want.statusCode, result.StatusCode)
+			//assert.Equal(t, test.want.answer, result.Header.Get("Location"))
+
+			err := result.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+
+	type want struct {
+		statusCode int
+		err        error
+	}
+	tests := []struct {
+		name     string
+		hashes   string
+		userID   string
+		register bool
+		request  string
+		want     want
+	}{
+		{
+			name:     "Simple request for code 202",
+			hashes:   `["wmmROXSv"]`,
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 202,
+				err:        nil,
+			},
+		},
+		{
+			name:     "Many user URLs request for code 202",
+			hashes:   `["wmmROXSv","QGtxHvUY","xfZRudbp", "oezaHfOQ", "WsStBGYJ"]`,
+			userID:   "125",
+			register: true,
+			request:  "/api/user/urls",
+			want: want{
+				statusCode: 202,
+				err:        nil,
+			},
+		},
+	}
+	for _, test := range tests {
+		// задаем режим рабоыт моков (для GET проверяем полученные данные)
+		m.EXPECT().
+			Delete(gomock.Any(), test.userID).
+			Return(test.want.err).
+			MaxTimes(5)
+
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodDelete, test.request, bytes.NewBuffer([]byte(test.hashes)))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{
+				UserID:   test.userID,
+				Register: test.register,
+			})
+			request = request.WithContext(ctx)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(DeleteAddr(hd))
+			h(w, request)
+			result := w.Result()
+			assert.Equal(t, test.want.statusCode, result.StatusCode)
+			//assert.Equal(t, test.want.answer, result.Header.Get("Location"))
+
+			err := result.Body.Close()
 			require.NoError(t, err)
 		})
 	}

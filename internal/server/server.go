@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/app/cmpgzip"
 	"github.com/Arti9991/shortener/internal/app/handlers"
 	"github.com/Arti9991/shortener/internal/config"
@@ -45,11 +46,13 @@ func NewServer() (*Server, error) {
 func (s *Server) MainRouter() chi.Router {
 
 	rt := chi.NewRouter()
-	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddr(s.hd))))
-	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.GetAddr(s.hd))))
-	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.Ping(s.hd))))
-	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostAddrJSON(s.hd))))
-	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(handlers.PostBatch(s.hd))))
+	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth((handlers.PostAddr(s.hd))))))
+	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.GetAddr(s.hd)))))
+	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.Ping(s.hd)))))
+	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostAddrJSON(s.hd)))))
+	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostBatch(s.hd)))))
+	rt.Get("/api/user/urls", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.GetAddrUser(s.hd)))))
+	rt.Delete("/api/user/urls", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.DeleteAddr(s.hd)))))
 
 	return rt
 }
@@ -60,17 +63,21 @@ func RunServer() error {
 	if err != nil {
 		return err
 	}
+	defer close(serv.hd.OutDelCh)
 
 	logger.Log.Info("New server initialyzed!",
 		zap.String("Server addres:", serv.Config.HostAdr),
 		zap.String("Base addres:", serv.Config.BaseAdr),
 	)
 
-	//чтение всех данных из файла в память
+	// чтение всех данных из файла в память
 	err = serv.FileRead(serv.hd.Files)
 	if err != nil {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}
+
+	// запуск горутины (описана в initStor.go)
+	RunDeleteStor(*serv.hd)
 
 	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
 	return err

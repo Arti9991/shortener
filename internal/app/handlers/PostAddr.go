@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 )
@@ -25,10 +26,15 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
+		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
+		UserID := UserInfo.UserID
+		//fmt.Println(UserID)
+		//UserID := "1"
+		//генерация рандомной строки
 		hashStr := randomString(8)
 
 		// сохранение URL в базу или в память
-		err = hd.Dt.Save(hashStr, string(body))
+		err = hd.Dt.Save(hashStr, string(body), UserID)
 		if err != nil {
 			logger.Log.Info("Error in Save", zap.Error(err))
 			if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {

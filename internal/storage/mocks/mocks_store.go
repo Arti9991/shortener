@@ -34,34 +34,63 @@ func (m *MockStorFunc) EXPECT() *MockStorFuncMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method.
-func (m *MockStorFunc) Get(arg0 string) (string, error) {
+// Delete mocks base method.
+func (m *MockStorFunc) Delete(keys []string, UserID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0)
+	ret := m.ctrl.Call(m, "Delete", keys, UserID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockStorFuncMockRecorder) Delete(keys, UserID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStorFunc)(nil).Delete), keys, UserID)
+}
+
+// Get mocks base method.
+func (m *MockStorFunc) Get(key string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", key)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockStorFuncMockRecorder) Get(arg0 interface{}) *gomock.Call {
+func (mr *MockStorFuncMockRecorder) Get(key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStorFunc)(nil).Get), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStorFunc)(nil).Get), key)
 }
 
 // GetOrig mocks base method.
-func (m *MockStorFunc) GetOrig(arg0 string) (string, error) {
+func (m *MockStorFunc) GetOrig(val string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOrig", arg0)
+	ret := m.ctrl.Call(m, "GetOrig", val)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOrig indicates an expected call of GetOrig.
-func (mr *MockStorFuncMockRecorder) GetOrig(arg0 interface{}) *gomock.Call {
+func (mr *MockStorFuncMockRecorder) GetOrig(val interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrig", reflect.TypeOf((*MockStorFunc)(nil).GetOrig), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrig", reflect.TypeOf((*MockStorFunc)(nil).GetOrig), val)
+}
+
+// GetUser mocks base method.
+func (m *MockStorFunc) GetUser(UserID, BaseAdr string) (models.UserBuff, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUser", UserID, BaseAdr)
+	ret0, _ := ret[0].(models.UserBuff)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUser indicates an expected call of GetUser.
+func (mr *MockStorFuncMockRecorder) GetUser(UserID, BaseAdr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockStorFunc)(nil).GetUser), UserID, BaseAdr)
 }
 
 // Ping mocks base method.
@@ -79,30 +108,30 @@ func (mr *MockStorFuncMockRecorder) Ping() *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockStorFunc) Save(arg0, arg1 string) error {
+func (m *MockStorFunc) Save(key, val, UserID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", arg0, arg1)
+	ret := m.ctrl.Call(m, "Save", key, val, UserID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockStorFuncMockRecorder) Save(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStorFuncMockRecorder) Save(key, val, UserID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockStorFunc)(nil).Save), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockStorFunc)(nil).Save), key, val, UserID)
 }
 
 // SaveTx mocks base method.
-func (m *MockStorFunc) SaveTx(arg0 models.InBuff, arg1 string) (models.OutBuff, error) {
+func (m *MockStorFunc) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveTx", arg0, arg1)
+	ret := m.ctrl.Call(m, "SaveTx", InURLs, BaseAdr)
 	ret0, _ := ret[0].(models.OutBuff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SaveTx indicates an expected call of SaveTx.
-func (mr *MockStorFuncMockRecorder) SaveTx(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStorFuncMockRecorder) SaveTx(InURLs, BaseAdr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTx", reflect.TypeOf((*MockStorFunc)(nil).SaveTx), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTx", reflect.TypeOf((*MockStorFunc)(nil).SaveTx), InURLs, BaseAdr)
 }

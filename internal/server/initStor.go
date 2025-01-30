@@ -9,6 +9,7 @@ import (
 
 	"github.com/Arti9991/shortener/internal/app/handlers"
 	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 	"github.com/Arti9991/shortener/internal/storage/database"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
@@ -21,6 +22,8 @@ func (s *Server) StorInit() {
 	var err1 error
 	var err2 error
 
+	// иницализация канала для удаленных URL
+	DeleteOutCh := make(chan models.DeleteURL)
 	// инциализация хранилища в базе данных
 	s.DataBase, err1 = database.DBinit(s.Config.DBAddress)
 	if err1 == nil {
@@ -32,7 +35,7 @@ func (s *Server) StorInit() {
 		}
 		s.DataBase.File = s.Files
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под базу
-		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files)
+		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh)
 		return
 	} else {
 		//при инцииализации базы возникла ошибка, работа продолжается с внутренней памятью
@@ -45,7 +48,7 @@ func (s *Server) StorInit() {
 		// инциализация хранилища в памяти
 		s.Inmemory = inmemory.NewData(s.Files)
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под память
-		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files)
+		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh)
 		return
 	}
 }
@@ -81,7 +84,7 @@ func (s *Server) FileRead(d *files.FileData) error {
 			return err
 		}
 
-		err = s.hd.Dt.Save(fl.Shorturl, fl.Origurl)
+		err = s.hd.Dt.Save(fl.Shorturl, fl.Origurl, "1") ////////////////////////////////////////////////////////////////////
 		if err != nil {
 			if !strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 				logger.Log.Info("Error in saving data!", zap.Error(err))
@@ -94,4 +97,18 @@ func (s *Server) FileRead(d *files.FileData) error {
 	}
 	d.ID = id
 	return nil
+}
+
+// функция с горутиной, получающей URL для удаления
+// и отправки запроса в БД
+func RunDeleteStor(hd handlers.HandlersData) {
+	go func() {
+		for DelStruct := range hd.OutDelCh {
+			err := hd.Dt.Delete(DelStruct.ShortURL, DelStruct.UserID)
+			if err != nil {
+				logger.Log.Info("Error in deleting in DB", zap.Error(err))
+				continue
+			}
+		}
+	}()
 }

@@ -15,15 +15,21 @@ import (
 
 var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
+	user_id VARCHAR(16),
     hash_id 	VARCHAR(8),
-    income_url VARCHAR(100) NOT NULL UNIQUE
+    income_url VARCHAR(100) NOT NULL UNIQUE,
+	delete_flag BOOLEAN NOT NULL DEFAULT FALSE
 	);`
-var QuerrySave = `INSERT INTO urls (id, hash_id, income_url)
-	VALUES  (DEFAULT, $1, $2);`
-var QuerryGet = `SELECT income_url
+var QuerrySave = `INSERT INTO urls (id, user_id, hash_id, income_url)
+	VALUES  (DEFAULT, $1, $2, $3);`
+var QuerryGet = `SELECT income_url, delete_flag
 	FROM urls WHERE hash_id = $1 LIMIT 1;`
 var QuerryGetOrig = `SELECT hash_id
 	FROM urls WHERE income_url = $1 LIMIT 1;`
+var QuerryGetUser = `SELECT hash_id, income_url
+	FROM urls WHERE user_id = $1;`
+var QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
+	WHERE user_id = ($1) AND hash_id = ANY($2);`
 
 type DBStor struct {
 	storage.StorFunc
@@ -61,13 +67,13 @@ func DBinit(DBInfo string) (*DBStor, error) {
 }
 
 // сохранение полученных значений в таблицу SQL
-func (db *DBStor) Save(key string, val string) error {
+func (db *DBStor) Save(key string, val string, UserID string) error {
 	if db.InFiles {
 		return nil
 	}
 
 	var err error
-	_, err = db.DB.Exec(QuerrySave, key, val)
+	_, err = db.DB.Exec(QuerrySave, UserID, key, val)
 	if err != nil {
 		if db.CodeIsUniqueViolation(err) {
 			return err
@@ -86,11 +92,15 @@ func (db *DBStor) Get(key string) (string, error) {
 	}
 	var err error
 	var val string
+	var isDelete = false
 
 	row := db.DB.QueryRow(QuerryGet, key)
-	err = row.Scan(&val)
+	err = row.Scan(&val, &isDelete)
 	if err != nil {
 		return "", err
+	}
+	if isDelete {
+		return "", models.ErrorDeleted
 	}
 	return val, nil
 }
@@ -107,6 +117,41 @@ func (db *DBStor) GetOrig(val string) (string, error) {
 		return "", err
 	}
 	return key, nil
+}
+
+// получение всех сокращенных и оригинальных URL для конкретного пользователя
+func (db *DBStor) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
+	if db.InFiles {
+		return nil, nil
+	}
+	var err error
+	var OutBuff models.UserBuff
+	//for _, hash := range d.UserKeys[UserID] {
+	rows, err := db.DB.Query(QuerryGetUser, UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var UserURL models.UserURL
+		err = rows.Scan(&UserURL.ShortURL, &UserURL.OrigURL)
+		if err != nil {
+			return nil, err
+		}
+		UserURL.ShortURL = BaseAdr + "/" + UserURL.ShortURL
+
+		OutBuff = append(OutBuff, UserURL)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(OutBuff) == 0 {
+		return nil, models.ErrorNoUserURL
+	}
+
+	return OutBuff, nil
 }
 
 // сохранение значений в таблицу при помощи транзакций
@@ -127,8 +172,9 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 	// потоковое чтение JSON и сохранение в базу по транзакциям
 	for _, income := range InURLs {
 		hashStr := income.Hash
+		user := income.UserID
 
-		_, err = tx.Exec(QuerrySave, hashStr, income.URL)
+		_, err = tx.Exec(QuerrySave, user, hashStr, income.URL)
 		if err != nil {
 			tx.Rollback()
 			db.InFiles = true
@@ -154,6 +200,21 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 	}
 
 	return OutBuff, nil
+}
+
+// проставление флагов в базу о том, что URL удален из базы данных
+func (db *DBStor) Delete(keys []string, UserID string) error {
+	if db.InFiles {
+		return nil
+	}
+
+	var err error
+	_, err = db.DB.Exec(QuerryDeleteURL, UserID, keys)
+	if err != nil {
+		db.InFiles = true
+		return err
+	}
+	return nil
 }
 
 // проверка соединения с базой данных

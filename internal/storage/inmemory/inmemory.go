@@ -14,22 +14,25 @@ type Data struct {
 	sync.Mutex
 	File      *files.FileData
 	ShortUrls map[string]string
+	UserKeys  map[string][]string
 }
 
 // инициализация карты для хранения пар:
 // ключ (сокращенный URL) - значение (исходный URL)
 func NewData(file *files.FileData) *Data {
 	dt := make(map[string]string)
-	return &Data{File: file, ShortUrls: dt}
+	us := make(map[string][]string)
+	return &Data{File: file, ShortUrls: dt, UserKeys: us}
 }
 
 // добавление пары ключ (сокращенный URL) - значение (исходный URL)
-func (d *Data) Save(key string, value string) error {
+func (d *Data) Save(key string, value string, UserID string) error {
 	d.Lock()
 	defer d.Unlock()
 	_, ok := d.ShortUrls[key]
 	if !ok {
 		d.ShortUrls[key] = value
+		d.UserKeys[UserID] = append(d.UserKeys[UserID], key)
 	}
 	return nil
 }
@@ -39,7 +42,7 @@ func (d *Data) Get(key string) (string, error) {
 	d.Lock()
 	defer d.Unlock()
 	if d.ShortUrls[key] == "" {
-		return "", errors.New("no such URL in memory")
+		return "", models.ErrorNoURL
 	} else {
 		return d.ShortUrls[key], nil
 	}
@@ -54,7 +57,24 @@ func (d *Data) GetOrig(val string) (string, error) {
 			return key, nil
 		}
 	}
-	return "", errors.New("no such URL in map")
+	return "", models.ErrorNoURL
+}
+
+// получение всех сокращенных и оригинальных URL для конкретного пользователя
+func (d *Data) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
+	d.Lock()
+	defer d.Unlock()
+	var OutBuff models.UserBuff
+	for _, hash := range d.UserKeys[UserID] {
+		//var UserURL models.UserURL
+		orig := d.ShortUrls[hash]
+		short := BaseAdr + "/" + hash
+		OutBuff = append(OutBuff, models.UserURL{ShortURL: short, OrigURL: orig})
+	}
+	if len(OutBuff) == 0 {
+		return nil, models.ErrorNoUserURL
+	}
+	return OutBuff, nil
 }
 
 // множестевнное сохранение во внутреннюю память
@@ -69,6 +89,7 @@ func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, err
 		_, ok := d.ShortUrls[hashStr]
 		if !ok {
 			d.ShortUrls[hashStr] = income.URL
+			d.UserKeys[income.UserID] = append(d.UserKeys[income.UserID], hashStr)
 		}
 
 		// // сохранение URL в файле
@@ -89,6 +110,11 @@ func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, err
 // заглушка функции ping для реализации DuckType
 func (d *Data) Ping() error {
 	return nil
+}
+
+// заглушка для реализации интерфейса хранилища
+func (d *Data) Delete(keys []string, UserID string) error {
+	return errors.New("unable for inmemory mode")
 }
 
 // сброс всех значений в карте
