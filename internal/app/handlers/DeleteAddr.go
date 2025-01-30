@@ -36,10 +36,7 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 		// функция для запуска горутины и отправки структуры в канал
-		err = ThreadDecode(body, UserID, hd.OutDelCh)
-		if err != nil {
-			logger.Log.Info("Error in ThreadDecode", zap.Error(err))
-		}
+		ThreadDecode(body, UserID, hd.OutDelCh)
 
 		res.WriteHeader(http.StatusAccepted)
 	}
@@ -47,7 +44,7 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 
 // функция с горутиной, считывающей данные из тела запроса, декдоированием из JSON
 // и отправки данных в канал
-func ThreadDecode(body []byte, UserID string, outCh chan models.DeleteURL) error {
+func ThreadDecode(body []byte, UserID string, outCh chan models.DeleteURL) {
 
 	go func() {
 		var InURLs models.DeleteURL
@@ -60,5 +57,4 @@ func ThreadDecode(body []byte, UserID string, outCh chan models.DeleteURL) error
 		InURLs.UserID = UserID
 		outCh <- InURLs
 	}()
-	return nil
 }
