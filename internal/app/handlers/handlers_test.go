@@ -600,7 +600,7 @@ func TestGetUser(t *testing.T) {
 			register: false,
 			request:  "/api/user/urls",
 			want: want{
-				statusCode: 401,
+				statusCode: 204,
 				answer:     nil,
 				err:        models.ErrorNoUserURL,
 			},
