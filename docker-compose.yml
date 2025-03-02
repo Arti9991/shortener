@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  server:
+    build: .
+    container_name: shortener-server
+    ports:
+      - '8082:8082'
+    environment:
+      DATABASE_DSN: host=postgres-db user=myuser password=123456 dbname=ShortURL sslmode=disable
+      SERVER_ADDRESS: :8082
+    depends_on:
+      - postgres-db
+    networks:
+      - shortener
+  postgres-db:
+    image: postgres
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: ShortURL
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+    networks:
+      - shortener
+    # logging:
+    #   driver: none
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d ShortURL" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  # internal:
+  #   name: internal
+  #   driver: bridge
+  shortener:
+    name: shortener
+    driver: bridge
