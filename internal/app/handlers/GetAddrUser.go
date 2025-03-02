@@ -25,7 +25,7 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 		IsExist := UserInfo.Register
 		// установка заголовка ответа для незарегистрированного пользователя
 		if !IsExist {
-			res.WriteHeader(http.StatusUnauthorized)
+			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 		// получение всех сокращенных URL для данного пользователя из базы или памяти
