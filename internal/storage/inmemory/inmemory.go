@@ -5,24 +5,20 @@ import (
 	"sync"
 
 	"github.com/Arti9991/shortener/internal/models"
-	"github.com/Arti9991/shortener/internal/storage"
-	"github.com/Arti9991/shortener/internal/storage/files"
 )
 
 type Data struct {
-	storage.StorFunc
 	sync.Mutex
-	File      *files.FileData
 	ShortUrls map[string]string
 	UserKeys  map[string][]string
 }
 
 // инициализация карты для хранения пар:
 // ключ (сокращенный URL) - значение (исходный URL)
-func NewData(file *files.FileData) *Data {
+func NewData() *Data {
 	dt := make(map[string]string)
 	us := make(map[string][]string)
-	return &Data{File: file, ShortUrls: dt, UserKeys: us}
+	return &Data{ShortUrls: dt, UserKeys: us}
 }
 
 // добавление пары ключ (сокращенный URL) - значение (исходный URL)
@@ -91,12 +87,6 @@ func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, err
 			d.ShortUrls[hashStr] = income.URL
 			d.UserKeys[income.UserID] = append(d.UserKeys[income.UserID], hashStr)
 		}
-
-		// // сохранение URL в файле
-		// err = d.File.FileSave(hashStr, IncomeURL.URL)
-		// if err != nil {
-		// 	logger.Log.Info("Error in safe to File")
-		// }
 
 		var OutURL models.BatchOutURL
 		OutURL.ShortURL = BaseAdr + "/" + hashStr

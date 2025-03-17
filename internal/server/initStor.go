@@ -29,11 +29,10 @@ func (s *Server) StorInit() {
 	if err1 == nil {
 		// ошибка нулевая, работа продолжается через БД
 		// инциализация структуры для файлов
-		s.Files, err2 = files.NewFiles(s.Config.FilePath, s.DataBase)
+		s.Files, err2 = files.NewFiles(s.Config.FilePath)
 		if err2 != nil {
 			logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err2))
 		}
-		s.DataBase.File = s.Files
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под базу
 		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh)
 		return
@@ -41,12 +40,12 @@ func (s *Server) StorInit() {
 		//при инцииализации базы возникла ошибка, работа продолжается с внутренней памятью
 		logger.Log.Info("Error while connecting to database! Setting file or inmemory mode!", zap.Error(err1))
 		// инциализация структуры для файлов
-		s.Files, err2 = files.NewFiles(s.Config.FilePath, s.DataBase)
+		s.Files, err2 = files.NewFiles(s.Config.FilePath)
 		if err2 != nil {
 			logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err2))
 		}
 		// инциализация хранилища в памяти
-		s.Inmemory = inmemory.NewData(s.Files)
+		s.Inmemory = inmemory.NewData()
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под память
 		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh)
 		return

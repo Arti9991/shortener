@@ -7,8 +7,6 @@ import (
 
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
-	"github.com/Arti9991/shortener/internal/storage"
-	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -31,9 +29,9 @@ var QuerryGetUser = `SELECT hash_id, income_url
 var QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
 	WHERE user_id = ($1) AND hash_id = ANY($2);`
 
+var QuerryDropTable = `DROP TABLE urls;` // только для тестов!!!
+
 type DBStor struct {
-	storage.StorFunc
-	File    *files.FileData
 	DB      *sql.DB
 	DBInfo  string
 	InFiles bool // флаг, указывающий на характер хранения данных (true - хранение в файле)
@@ -181,12 +179,6 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 			return nil, err
 		}
 
-		// //сохранение URL в файле
-		// err = db.File.FileSave(hashStr, IncomeURL.URL)
-		// if err != nil {
-		// 	logger.Log.Info("Error in safe to File")
-		// }
-
 		var OutURL models.BatchOutURL
 		OutURL.ShortURL = BaseAdr + "/" + hashStr
 		OutURL.CorrID = income.CorrID
@@ -217,6 +209,16 @@ func (db *DBStor) Delete(keys []string, UserID string) error {
 	return nil
 }
 
+// сброс таблицы (только для тестов!!!)
+func (db *DBStor) DropTable() error {
+	var err error
+	_, err = db.DB.Exec(QuerryDropTable)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // проверка соединения с базой данных
 func (db *DBStor) Ping() error {
 	var err error
@@ -227,6 +229,7 @@ func (db *DBStor) Ping() error {
 	return nil
 }
 
+// проверка возвращаемрй ошибки на ошибку уникальности
 func (db *DBStor) CodeIsUniqueViolation(err error) bool {
 	strErr := err.Error()
 	return strings.Contains(strErr, pgerrcode.UniqueViolation)

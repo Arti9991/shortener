@@ -286,7 +286,7 @@ func TestGet(t *testing.T) {
 
 func TestMultuplTasks(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest(), DeleteChan)
+	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode1  int
@@ -413,7 +413,7 @@ func TestMultuplTasks(t *testing.T) {
 
 func TestPostBatch(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(Files), BaseAdr, files.FilesTest(), DeleteChan)
+	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
 		statusCode  int

@@ -7,7 +7,6 @@ import (
 
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
-	"github.com/Arti9991/shortener/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -19,62 +18,24 @@ type FileStor struct {
 
 type FileData struct {
 	ID       int
-	stor     storage.StorFunc
 	Path     string
 	InMemory bool //флаг для типа работы с памятью (файл или временная)
 }
 
 // конструктор структуры для работы с файлами. Также он создает/проверяет сам файл
-func NewFiles(Path string, stor storage.StorFunc) (*FileData, error) {
+func NewFiles(Path string) (*FileData, error) {
 	file, err := os.OpenFile(Path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil || Path == "" {
 		return &FileData{InMemory: true}, err
 	}
 	file.Close()
-	return &FileData{ID: 0, stor: stor, Path: Path, InMemory: false}, nil
+	return &FileData{ID: 0, Path: Path, InMemory: false}, nil
 }
 
 // тестовый инциализатор с отключенным флагом
 func FilesTest() *FileData {
 	return &FileData{InMemory: true}
 }
-
-// // функция для чтения всех данных в файле и сохранения их в базу или память
-// func (d *FileData) FileRead() error {
-// 	// проверка флага на хранение данных в памяти
-// 	if d.InMemory {
-// 		return nil
-// 	}
-// 	var id int
-// 	logger.Log.Info("INFO reading file")
-// 	file, err := os.OpenFile(d.Path, os.O_RDONLY|os.O_CREATE, 0644)
-// 	if err != nil {
-// 		logger.Log.Info("Error in reading file! Setting in memory mode!", zap.Error(err))
-// 		d.InMemory = true
-// 		return err
-// 	}
-// 	defer file.Close()
-// 	reader := bufio.NewReader(file)
-// 	for {
-// 		var fl FileStor
-// 		buff, err := reader.ReadBytes('\n')
-// 		if err == io.EOF {
-// 			break
-// 		} else if err != nil && err != io.EOF {
-// 			logger.Log.Info("Error in reading data!", zap.Error(err))
-// 			return err
-// 		}
-// 		err = json.Unmarshal(buff, &fl)
-// 		if err != nil {
-// 			logger.Log.Info("Error in unmarshalling data!", zap.Error(err))
-// 			return err
-// 		}
-// 		d.stor.Save(fl.Shorturl, fl.Origurl)
-// 		id = fl.ID
-// 	}
-// 	d.ID = id
-// 	return nil
-// }
 
 // функция сохранения исходного и укороченного URL в файл
 func (d *FileData) FileSave(key string, val string) error {
