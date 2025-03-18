@@ -39,7 +39,7 @@ func TestPostAddr(t *testing.T) {
 	// создаём объект-заглушку
 	m := mocks.NewMockStorFunc(ctrl)
 
-	// задаем режим рабоыт моков (для POST главное отсутствие ошибки)
+	// задаем режим работы моков (для POST главное отсутствие ошибки)
 	m.EXPECT().
 		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
@@ -709,4 +709,235 @@ func TestDelete(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func BenchmarkHandlers(b *testing.B) {
+	// создаём контроллер
+	ctrl := gomock.NewController(b)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку для POST
+	m := mocks.NewMockStorFunc(ctrl)
+
+	// задаем режим работы моков для POST
+	m.EXPECT().
+		Save(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		MinTimes(1)
+
+	// задаем режим работы моков для POST BATCH
+	m.EXPECT().
+		SaveTx(gomock.Any(), gomock.Any()).
+		Return(nil, nil).
+		MinTimes(1)
+
+	// задаем режим рабоыт моков для GET
+	m.EXPECT().
+		Get(gomock.Any()).
+		Return("www.ya.ru", nil).
+		MinTimes(1)
+
+	// задаем режим рабоыт моков для GET
+	// m.EXPECT().
+	// 	GetUser(gomock.Any(), gomock.Any()).
+	// 	Return(nil, nil).
+	// 	MinTimes(1)
+
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+
+	// создаём объект-заглушку для GET
+	//mG := mocks.NewMockStorFunc(ctrl)
+
+	// // задаем режим рабоыт моков (для GET проверяем полученные файлы)
+	// mG.EXPECT().
+	// 	Get(test.hash).
+	// 	Return(test.want.answer, test.want.err).
+	// 	MaxTimes(1)
+	// hdG := NewHandlersData(mP, BaseAdr, files.FilesTest(), DeleteChan)
+
+	type want struct {
+		statusCodePost    int
+		statusCodeGet     int
+		statusCodeGetUser int
+		contentType       string
+		contentTypeJSON   string
+		answer            string
+	}
+
+	tests := struct {
+		name             string
+		requestPOST      string
+		requestPOSTJSON  string
+		requestPOSTBatch string
+		requestGET       string
+		hash             string
+		body             string
+		bodyJSON         string
+		bodyBatch        string
+		want             want
+	}{
+
+		name:             "Simple request for code 201",
+		requestPOST:      "/",
+		requestPOSTJSON:  "/api/shorten",
+		requestPOSTBatch: "/api/shorten/batch",
+		requestGET:       "/DxDfgvDa",
+		hash:             "DxDfgvDa",
+		body:             "www.ya.ru",
+		bodyJSON:         `{"url":"www.ya.ru"}`,
+		bodyBatch: `[
+							{
+								"correlation_id": "ID",
+								"original_url": "www.ya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.dlya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.Nya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.Qya.ru"
+							},
+							{
+								"correlation_id": "ID",
+								"original_url": "www.Mya.ru"
+							}
+						]`,
+		want: want{
+			statusCodePost:    201,
+			statusCodeGet:     307,
+			statusCodeGetUser: 204,
+			contentType:       "text/plain",
+			contentTypeJSON:   "application/json",
+			answer:            "http://example.com/",
+		},
+	}
+
+	b.Run("POST", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			request := httptest.NewRequest(http.MethodPost, tests.requestPOST, strings.NewReader(tests.body))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(PostAddr(hd))
+
+			b.StartTimer()
+			h(w, request)
+			b.StopTimer()
+
+			result := w.Result()
+			assert.Equal(b, tests.want.statusCodePost, result.StatusCode)
+			assert.Equal(b, tests.want.contentType, result.Header.Get("Content-Type"))
+
+			userResult, err := io.ReadAll(result.Body)
+			require.NoError(b, err)
+			err = result.Body.Close()
+			require.NoError(b, err)
+
+			strResult := string(userResult)
+			bl := strings.Contains(strResult, tests.want.answer)
+			assert.True(b, bl)
+		}
+	})
+
+	b.Run("POST JSON", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			request := httptest.NewRequest(http.MethodPost, tests.requestPOSTJSON, bytes.NewBuffer([]byte(tests.bodyJSON)))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
+			request.Header.Add("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(PostAddrJSON(hd))
+
+			b.StartTimer()
+			h(w, request)
+			b.StopTimer()
+
+			result := w.Result()
+			assert.Equal(b, tests.want.statusCodePost, result.StatusCode)
+			assert.Equal(b, tests.want.contentTypeJSON, result.Header.Get("Content-Type"))
+
+			//strResult := string(ResURL.Result)
+
+			// res, _ := strings.CutPrefix(strResult, "http://example.com/")
+			// assert.Equal(t, test.want.answer, hd.Dt.ShortUrls[res])
+			err := result.Body.Close()
+			require.NoError(b, err)
+		}
+	})
+
+	b.Run("POST JSON Batch", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			request := httptest.NewRequest(http.MethodPost, tests.requestPOSTBatch, bytes.NewBuffer([]byte(tests.bodyBatch)))
+			request.Header.Add("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(PostBatch(hd))
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
+			b.StartTimer()
+			h(w, request)
+			b.StopTimer()
+
+			result := w.Result()
+			assert.Equal(b, tests.want.statusCodePost, result.StatusCode)
+			assert.Equal(b, tests.want.contentTypeJSON, result.Header.Get("Content-Type"))
+
+			err := result.Body.Close()
+			require.NoError(b, err)
+		}
+	})
+
+	b.Run("GET", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			request := httptest.NewRequest(http.MethodGet, tests.requestGET, nil)
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(GetAddr(hd))
+
+			b.StartTimer()
+			h(w, request)
+			b.StopTimer()
+
+			result := w.Result()
+			assert.Equal(b, tests.want.statusCodeGet, result.StatusCode)
+			assert.Equal(b, tests.body, result.Header.Get("Location"))
+
+			err := result.Body.Close()
+			require.NoError(b, err)
+		}
+	})
+	// b.Run("GET USER", func(b *testing.B) {
+	// 	for i := 0; i < b.N; i++ {
+	// 		request := httptest.NewRequest(http.MethodGet, tests.requestGET, nil)
+
+	// 		ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+	// 		request = request.WithContext(ctx)
+
+	// 		w := httptest.NewRecorder()
+	// 		h := http.HandlerFunc(GetAddrUser(hd))
+
+	// 		b.StartTimer()
+	// 		h(w, request)
+	// 		b.StopTimer()
+
+	// 		result := w.Result()
+	// 		assert.Equal(b, tests.want.statusCodeGetUser, result.StatusCode)
+
+	// 		err := result.Body.Close()
+	// 		require.NoError(b, err)
+	// 	}
+	// })
 }

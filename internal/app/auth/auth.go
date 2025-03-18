@@ -15,8 +15,8 @@ import (
 var UserSession = "userID"
 var key = []byte{183, 21, 219, 229, 199, 223, 64, 207, 94, 48, 138, 6, 9, 250, 124, 17}
 
-func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+func MiddlewareAuth(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var UserExist bool
 		var UserID string
 
@@ -50,7 +50,7 @@ func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
 		req = req.WithContext(ctx)
 		// передаём управление хендлеру
 		h.ServeHTTP(res, req)
-	}
+	})
 }
 
 func MakeCiper() (cipher.Block, error) {

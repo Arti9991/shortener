@@ -33,7 +33,7 @@ func Initialize(level string) error {
 }
 
 // middleware обработчик для zap логгера с логированием полученных и отправленных запросов
-func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
+func MiddlewareLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 		responseData := &responseData{
@@ -44,7 +44,7 @@ func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
 			ResponseWriter: res, //встраиваем оригинальный http.ResponseWriter
 			responseData:   responseData,
 		}
-		h(&reslog, req)
+		h.ServeHTTP(&reslog, req)
 		duration := time.Since(start)
 		Log.Info("got incoming HTTP request",
 			zap.String("URI", req.RequestURI),

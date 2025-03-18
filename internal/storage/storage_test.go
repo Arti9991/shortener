@@ -21,7 +21,7 @@ func BenchmarkStor(b *testing.B) {
 
 	MemInterface := inmemory.NewData()
 
-	numReps := 20
+	numReps := 400
 	hashStr := make([]string, 0)
 	URLStr := make([]string, 0)
 	UserID := models.RandomString(16)

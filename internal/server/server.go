@@ -1,7 +1,6 @@
 package server
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/Arti9991/shortener/internal/app/auth"
@@ -13,6 +12,7 @@ import (
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 	"golang.org/x/exp/rand"
 )
@@ -46,22 +46,31 @@ func NewServer() (*Server, error) {
 func (s *Server) MainRouter() chi.Router {
 
 	rt := chi.NewRouter()
-	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth((handlers.PostAddr(s.hd))))))
-	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.GetAddr(s.hd)))))
-	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.Ping(s.hd)))))
-	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostAddrJSON(s.hd)))))
-	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostBatch(s.hd)))))
-	rt.Get("/api/user/urls", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.GetAddrUser(s.hd)))))
-	rt.Delete("/api/user/urls", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.DeleteAddr(s.hd)))))
+
+	rt.Use(logger.MiddlewareLogger, cmpgzip.MiddlewareGzip, auth.MiddlewareAuth)
+
+	rt.Mount("/debug", middleware.Profiler())
+
+	rt.Post("/", handlers.PostAddr(s.hd))
+	rt.Get("/{id}", handlers.GetAddr(s.hd))
+	rt.Get("/ping", handlers.Ping(s.hd))
+	rt.Post("/api/shorten", handlers.PostAddrJSON(s.hd))
+	rt.Post("/api/shorten/batch", handlers.PostBatch(s.hd))
+	rt.Get("/api/user/urls", handlers.GetAddrUser(s.hd))
+	rt.Delete("/api/user/urls", handlers.DeleteAddr(s.hd))
+
+	//rt.Mount("/debug/pprof/", http.DefaultServeMux)
+
+	//rt.Handle("/debug/pprof/", http.DefaultServeMux)
 
 	return rt
 }
 
 // запуск сервера со всеми полученными параметрами
-func RunServer() error {
+func InitServer() (chi.Router, string, error) {
 	serv, err := NewServer()
 	if err != nil {
-		return err
+		return nil, "", err
 	}
 	defer close(serv.hd.OutDelCh)
 
@@ -79,6 +88,5 @@ func RunServer() error {
 	// запуск горутины (описана в initStor.go)
 	RunDeleteStor(*serv.hd)
 
-	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
-	return err
+	return serv.MainRouter(), serv.Config.HostAdr, nil
 }

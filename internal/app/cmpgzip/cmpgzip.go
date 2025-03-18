@@ -75,8 +75,8 @@ func (c *compressReader) Close() error {
 }
 
 // middleware обработчик для сжатия запросов и ответов в формате gzip
-func MiddlewareGzip(h http.HandlerFunc) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+func MiddlewareGzip(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// по умолчанию устанавливаем оригинальный http.ResponseWriter как тот,
 		// который будем передавать следующей функции
 		ores := res
@@ -115,5 +115,5 @@ func MiddlewareGzip(h http.HandlerFunc) http.HandlerFunc {
 
 		// передаём управление хендлеру
 		h.ServeHTTP(ores, req)
-	}
+	})
 }
