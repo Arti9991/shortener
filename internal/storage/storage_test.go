@@ -13,7 +13,7 @@ import (
 )
 
 func BenchmarkStor(b *testing.B) {
-	DbInterface, err := database.DBinit("host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable")
+	DBInterface, err := database.DBinit("host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable")
 	require.NoError(b, err)
 
 	FileInterface, err := files.NewFiles("./test_file.csv")
@@ -34,18 +34,18 @@ func BenchmarkStor(b *testing.B) {
 	//fmt.Printf("\n%s", hashStr)
 	b.Run("STORAGE in database save", func(b *testing.B) {
 		for i := 0; i < numReps; i++ {
-			DbInterface.Save(hashStr[i], URLStr[i], UserID)
+			DBInterface.Save(hashStr[i], URLStr[i], UserID)
 		}
 	})
 
 	b.Run("STORAGE in database get", func(b *testing.B) {
 		for i := 0; i < numReps; i++ {
-			res, err := DbInterface.Get(hashStr[i])
+			res, err := DBInterface.Get(hashStr[i])
 			require.NoError(b, err)
 			assert.Equal(b, res, URLStr[i])
 		}
 	})
-	err = DbInterface.DropTable()
+	err = DBInterface.DropTable()
 	require.NoError(b, err)
 
 	b.Run("STORAGE in memory save", func(b *testing.B) {
