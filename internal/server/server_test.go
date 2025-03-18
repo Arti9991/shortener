@@ -339,29 +339,30 @@ func BenchmarkServer(b *testing.B) {
 	}
 	b.ResetTimer()
 	for _, test := range tests {
-		ident := make([]string, 0)
+		var ident string
 		b.Run("POST", func(b *testing.B) {
-			b.StartTimer()
 			for i := 0; i < b.N; i++ {
+				b.StartTimer()
 				resp, get := testRequestsBench(b, ts, "POST", test.request, strings.NewReader(test.body))
+				b.StopTimer()
+
 				defer resp.Body.Close()
 				assert.Equal(b, test.want.statusCode1, resp.StatusCode)
 				assert.Equal(b, test.want.contentType1, resp.Header.Get("Content-Type"))
 				get, found := strings.CutPrefix(get, "http://example.com")
 				assert.True(b, found)
-				ident = append(ident, get)
+				ident = get
 			}
-			b.StopTimer()
 		})
 		b.Run("GET", func(b *testing.B) {
-			b.StartTimer()
 			for i := 0; i < b.N; i++ {
-				resp2, _ := testRequestsBench(b, ts, "GET", ident[i], nil)
+				b.StartTimer()
+				resp2, _ := testRequestsBench(b, ts, "GET", ident, nil)
+				b.StopTimer()
 				defer resp2.Body.Close()
 				assert.Equal(b, test.want.statusCode2, resp2.StatusCode)
-				assert.Equal(b, test.want.contentType2, resp2.Header.Get("Content-Type"))
+				assert.Equal(b, test.want.location, resp2.Header.Get("Location"))
 			}
-			b.StopTimer()
 		})
 
 	}
