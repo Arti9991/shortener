@@ -1,7 +1,10 @@
 package server
 
 import (
+	"net/http"
 	"time"
+
+	_ "net/http/pprof" // подключаем пакет pprof
 
 	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/app/cmpgzip"
@@ -67,10 +70,10 @@ func (s *Server) MainRouter() chi.Router {
 }
 
 // запуск сервера со всеми полученными параметрами
-func InitServer() (chi.Router, string, error) {
+func RunServer() error {
 	serv, err := NewServer()
 	if err != nil {
-		return nil, "", err
+		return err
 	}
 	defer close(serv.hd.OutDelCh)
 
@@ -88,5 +91,7 @@ func InitServer() (chi.Router, string, error) {
 	// запуск горутины (описана в initStor.go)
 	RunDeleteStor(*serv.hd)
 
-	return serv.MainRouter(), serv.Config.HostAdr, nil
+	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
+
+	return err
 }
