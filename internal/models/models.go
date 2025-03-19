@@ -50,10 +50,10 @@ type DeleteURL struct {
 
 func RandomString(n int) string {
 
-	var bt []byte
+	bt := make([]byte, n)
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	for range n {
-		bt = append(bt, charset[rand.Intn(len(charset))])
+	for i := range n {
+		bt[i] = charset[rand.Intn(len(charset))]
 	}
 
 	return string(bt)

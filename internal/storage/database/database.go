@@ -159,7 +159,7 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 		return nil, nil
 	}
 
-	var OutBuff models.OutBuff
+	OutBuff := make(models.OutBuff, len(InURLs))
 
 	//подготовка транзакции
 	tx, err := db.DB.Begin()
@@ -168,7 +168,7 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 		return nil, err
 	}
 	// потоковое чтение JSON и сохранение в базу по транзакциям
-	for _, income := range InURLs {
+	for i, income := range InURLs {
 		hashStr := income.Hash
 		user := income.UserID
 
@@ -183,7 +183,7 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 		OutURL.ShortURL = BaseAdr + "/" + hashStr
 		OutURL.CorrID = income.CorrID
 
-		OutBuff = append(OutBuff, OutURL)
+		OutBuff[i] = OutURL
 	}
 	err = tx.Commit()
 	if err != nil {
