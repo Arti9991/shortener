@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Объявление zap логгера.
 var Log *zap.Logger = zap.NewNop()
 
 // Initialize инициализация zap логгера (уровень логгирования INFO)
@@ -73,6 +74,7 @@ type (
 	}
 )
 
+// Переопределение функции для интерфейса.
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	//запись ответа, используя оригинальный http.ResponseWriter
 	size, err := r.ResponseWriter.Write(b)
@@ -80,6 +82,7 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
+// Переопределение функции для интерфейса.
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	//запись кода статуса, используя оригинальный http.ResponseWriter
 	r.ResponseWriter.WriteHeader(statusCode)

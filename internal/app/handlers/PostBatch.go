@@ -12,7 +12,7 @@ import (
 )
 
 // PostBatch для сохранения множества оригинальных URL
-// и создания укороченных в формате JSON
+// и создания укороченных в формате JSON.
 func PostBatch(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
@@ -28,7 +28,6 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
-		//fmt.Println(UserID)
 
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
@@ -38,32 +37,32 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 		}
 
 		var InURLs models.InBuff
-		// декодирование тела запроса
+		// декодирование тела запроса.
 		err = json.Unmarshal(body, &InURLs)
 		if err != nil {
 			logger.Log.Info("Bad request unmarshall", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		//заполнение вспомогательной структуры хэшами
+		//заполнение вспомогательной структуры хэшами.
 		for i := range InURLs {
 			InURLs[i].Hash = models.RandomString(8)
 			InURLs[i].UserID = UserID
 		}
-		// сохранение URL в базу
+		// сохранение URL в базу.
 		OutBuff, err := hd.Dt.SaveTx(InURLs, hd.BaseAdr)
 		if err != nil {
 			logger.Log.Info("Error in SaveTx", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		// сохранение URL в файл
+		// сохранение URL в файл.
 		err = hd.Files.FileSaveTx(InURLs, hd.BaseAdr)
 		if err != nil {
 			logger.Log.Info("Error in FileSaveTx", zap.Error(err))
 		}
 
-		// кодирование тела ответа
+		// кодирование тела ответа.
 		out, err := json.Marshal(OutBuff)
 		if err != nil {
 			logger.Log.Info("Wrong responce body", zap.Error(err))

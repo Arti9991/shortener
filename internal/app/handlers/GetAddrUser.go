@@ -11,7 +11,7 @@ import (
 )
 
 // GetAddrUser хэндлер для получения всех оригинальных URL
-// сохраненных пользователем
+// сохраненных пользователем.
 func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
@@ -21,16 +21,16 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 		}
 		var err error
 
-		// получение из контекста UserID и информации о регистрации
+		// получение из контекста UserID и информации о регистрации.
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
 		IsExist := UserInfo.Register
-		// установка заголовка ответа для незарегистрированного пользователя
+		// установка заголовка ответа для незарегистрированного пользователя.
 		if !IsExist {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		// получение всех сокращенных URL для данного пользователя из базы или памяти
+		// получение всех сокращенных URL для данного пользователя из базы или памяти.
 		OutBuff, err := hd.Dt.GetUser(UserID, hd.BaseAdr)
 		if err == models.ErrorNoUserURL {
 			res.WriteHeader(http.StatusNoContent)

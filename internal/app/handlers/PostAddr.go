@@ -12,7 +12,7 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
-// PostAddr хэндлер для сохранения оригинального URL и создание укороченного
+// PostAddr хэндлер для сохранения оригинального URL и создание укороченного.
 func PostAddr(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {

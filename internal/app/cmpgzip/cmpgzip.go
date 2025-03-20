@@ -25,14 +25,17 @@ func newCompressWriter(res http.ResponseWriter) *compressWriter {
 	}
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressWriter) Header() http.Header {
 	return c.res.Header()
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressWriter) Write(p []byte) (int, error) {
 	return c.zres.Write(p)
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressWriter) WriteHeader(statusCode int) {
 	if statusCode < 300 {
 		c.res.Header().Set("Content-Encoding", "gzip")
@@ -64,10 +67,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Переопределение функции для иннтерфейса.
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err

@@ -7,7 +7,7 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
-// Config структура со всемии конфигурируемыми параметрами
+// Config структура со всемии конфигурируемыми параметрами.
 type Config struct {
 	HostAdr   string `env:"SERVER_ADDRESS"`    // адрес сервера
 	BaseAdr   string `env:"BASE_URL"`          // базовый адрес возвращаемого URL
@@ -16,7 +16,7 @@ type Config struct {
 	DBAddress string `env:"DATABASE_DSN"`      // данные для подключения к базе
 }
 
-// InitConf инициализация конфигурации для чтения флагов и переменных окружения
+// InitConf инициализация конфигурации для чтения флагов и переменных окружения.
 func InitConf() Config {
 	var conf Config
 
@@ -34,7 +34,7 @@ func InitConf() Config {
 	return conf
 }
 
-// InitConfTests инициализация тестовой конфигурации с заданными параметрами
+// InitConfTests инициализация тестовой конфигурации с заданными параметрами.
 func InitConfTests() Config {
 	var conf Config
 	conf.HostAdr = "localhost:8080"

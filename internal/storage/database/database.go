@@ -12,25 +12,29 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
-var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
+// SQL запросы для дальнейших функций.
+var (
+	QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
 	user_id VARCHAR(16),
     hash_id 	VARCHAR(8),
     income_url VARCHAR(100) NOT NULL UNIQUE,
 	delete_flag BOOLEAN NOT NULL DEFAULT FALSE
 	);`
-var QuerrySave = `INSERT INTO urls (id, user_id, hash_id, income_url)
+	QuerrySave = `INSERT INTO urls (id, user_id, hash_id, income_url)
 	VALUES  (DEFAULT, $1, $2, $3);`
-var QuerryGet = `SELECT income_url, delete_flag
+	QuerryGet = `SELECT income_url, delete_flag
 	FROM urls WHERE hash_id = $1 LIMIT 1;`
-var QuerryGetOrig = `SELECT hash_id
+	QuerryGetOrig = `SELECT hash_id
 	FROM urls WHERE income_url = $1 LIMIT 1;`
-var QuerryGetUser = `SELECT hash_id, income_url
+	QuerryGetUser = `SELECT hash_id, income_url
 	FROM urls WHERE user_id = $1;`
-var QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
+	QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
 	WHERE user_id = ($1) AND hash_id = ANY($2);`
 
-var QuerryDropTable = `DROP TABLE urls;` // только для тестов!!!
+	QuerryDropTable = `DROP TABLE urls;` // только для тестов!!!
+)
+
 // DBStor структура для интерфейсов базы данных.
 type DBStor struct {
 	DB      *sql.DB // соединение с базой
