@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"golang.org/x/exp/rand"
+
 	"github.com/Arti9991/shortener/internal/models"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/Arti9991/shortener/internal/storage/files"
-	"golang.org/x/exp/rand"
 )
 
 func randomString(n int) string {

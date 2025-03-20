@@ -3,9 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/Arti9991/shortener/internal/logger"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
+
+	"github.com/Arti9991/shortener/internal/logger"
 )
 
 func Ping(hd *HandlersData) http.HandlerFunc {

@@ -5,10 +5,11 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/Arti9991/shortener/internal/logger"
-	"github.com/Arti9991/shortener/internal/models"
 	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 )
 
 var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (

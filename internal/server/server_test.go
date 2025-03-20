@@ -11,11 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Arti9991/shortener/internal/config"
-	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/rand"
+
+	"github.com/Arti9991/shortener/internal/config"
+	"github.com/Arti9991/shortener/internal/logger"
 )
 
 // инциализация подменной структуры для тестов с отключенным логгированием

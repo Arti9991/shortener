@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"path"
 
+	"go.uber.org/zap"
+
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
-	"go.uber.org/zap"
 )
 
 // хэндлер для получения оригинального URL по укороченному

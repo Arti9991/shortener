@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Arti9991/shortener/internal/logger"
-	"github.com/Arti9991/shortener/internal/models"
 	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
+
+	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 )
 
 // хэндлер создания укороченного URL

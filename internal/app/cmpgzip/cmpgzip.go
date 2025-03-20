@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Arti9991/shortener/internal/logger"
 	"go.uber.org/zap"
+
+	"github.com/Arti9991/shortener/internal/logger"
 )
 
 // compressWriter реализует интерфейс http.ResponseWriter и позволяет прозрачно для сервера

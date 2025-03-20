@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"os"
 
+	"go.uber.org/zap"
+
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
-	"go.uber.org/zap"
 )
 
 type FileStor struct {

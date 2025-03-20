@@ -6,6 +6,11 @@ import (
 
 	_ "net/http/pprof" // подключаем пакет pprof
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
+	"golang.org/x/exp/rand"
+
 	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/app/cmpgzip"
 	"github.com/Arti9991/shortener/internal/app/handlers"
@@ -14,10 +19,6 @@ import (
 	"github.com/Arti9991/shortener/internal/storage/database"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"go.uber.org/zap"
-	"golang.org/x/exp/rand"
 )
 
 type Server struct {
