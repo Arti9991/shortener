@@ -6,12 +6,16 @@ import (
 	"golang.org/x/exp/rand"
 )
 
+// BatchIncomeURL структура для
+// получения URL для множественного сохранения
 type BatchIncomeURL struct {
 	CorrID string `json:"correlation_id"`
 	URL    string `json:"original_url"`
 	Hash   string `json:"-"`
 	UserID string `json:"-"`
 }
+
+// BatchOutURL структура для множественной отправки коротких URL
 type BatchOutURL struct {
 	CorrID   string `json:"correlation_id"`
 	ShortURL string `json:"short_url"`
@@ -26,6 +30,7 @@ type OutcomeURL struct {
 	ShortURL string `json:"result"`
 }
 
+// UserURL структура для передачи URL и ID пользователя
 type UserURL struct {
 	ShortURL string `json:"short_url"`
 	OrigURL  string `json:"original_url"`
@@ -36,18 +41,20 @@ type KeyContext string
 
 var CtxKey = KeyContext("UserID")
 
+// UserInfo ID пользователя и информации о сессии
 type UserInfo struct {
 	UserID   string
 	Register bool
 }
 
+// DeleteURL структура для передачи множества URL
+// в канал, подлежащих удалению
 type DeleteURL struct {
 	ShortURL []string
 	UserID   string `json:"-"`
 }
 
-//type DeleteBuff []DeleteURL
-
+// RandomString функция для создания случайно строки заданной длинны
 func RandomString(n int) string {
 
 	bt := make([]byte, n)

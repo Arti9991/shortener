@@ -11,7 +11,8 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
-// хэндлер создания укороченных URL для массива JSON
+// PostBatch для сохранения множества оригинальных URL
+// и создания укороченных в формате JSON
 func PostBatch(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {

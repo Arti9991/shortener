@@ -13,9 +13,13 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
+// UserSession значение для хранения user ID в cookie
 var UserSession = "userID"
+
+// временный ключ
 var key = []byte{183, 21, 219, 229, 199, 223, 64, 207, 94, 48, 138, 6, 9, 250, 124, 17}
 
+// MiddlewareAuth middleware авторизация пользователя
 func MiddlewareAuth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var UserExist bool
@@ -54,6 +58,7 @@ func MiddlewareAuth(h http.Handler) http.Handler {
 	})
 }
 
+// MakeCiper создание кодировщика
 func MakeCiper() (cipher.Block, error) {
 	// получаем cipher.Block
 	aesblock, err := aes.NewCipher(key)
@@ -63,6 +68,7 @@ func MakeCiper() (cipher.Block, error) {
 	return aesblock, nil
 }
 
+// EncodeUserID создание нового UserID
 func EncodeUserID(UserID string) (string, error) {
 	cip, err := MakeCiper()
 	if err != nil {
@@ -75,6 +81,7 @@ func EncodeUserID(UserID string) (string, error) {
 	return hex.EncodeToString(UserIDenc), nil
 }
 
+// DecodeUserID декодирование полученного UserID
 func DecodeUserID(UserIDenc64 string) (string, error) {
 	UserIDenc, err := hex.DecodeString(UserIDenc64)
 	if err != nil {

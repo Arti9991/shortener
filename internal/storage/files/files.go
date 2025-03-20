@@ -11,19 +11,21 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
+// Структура с информацией о файлах.
 type FileStor struct {
 	ID       int    `json:"uuid"`
 	Shorturl string `json:"short_url"`
 	Origurl  string `json:"original_url"`
 }
 
+// структура для кодирования данных.
 type FileData struct {
 	ID       int
 	Path     string
 	InMemory bool //флаг для типа работы с памятью (файл или временная)
 }
 
-// конструктор структуры для работы с файлами. Также он создает/проверяет сам файл
+// NewFiles конструктор структуры для работы с файлами. Также он создает/проверяет сам файл.
 func NewFiles(Path string) (*FileData, error) {
 	file, err := os.OpenFile(Path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil || Path == "" {
@@ -33,12 +35,12 @@ func NewFiles(Path string) (*FileData, error) {
 	return &FileData{ID: 0, Path: Path, InMemory: false}, nil
 }
 
-// тестовый инциализатор с отключенным флагом
+// FilesTest тестовый инциализатор с отключенным флагом.
 func FilesTest() *FileData {
 	return &FileData{InMemory: true}
 }
 
-// функция сохранения исходного и укороченного URL в файл
+// FileSave функция сохранения исходного и укороченного URL в файл.
 func (d *FileData) FileSave(key string, val string) error {
 	// проверка флага на хранение данных в памяти
 	if d.InMemory {
@@ -79,7 +81,7 @@ func (d *FileData) FileSave(key string, val string) error {
 	return nil
 }
 
-// функция сохранения множества URL в файл при чтении их из JSON
+// FileSaveTx функция сохранения множества URL в файл при чтении их из JSON.
 func (d *FileData) FileSaveTx(InURLs models.InBuff, BaseAdr string) error {
 	// проверка флага на хранение данных в памяти
 	if d.InMemory {

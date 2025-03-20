@@ -10,7 +10,8 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
-// хэндлер для получения оригинального URL по укороченному
+// GetAddrUser хэндлер для получения всех оригинальных URL
+// сохраненных пользователем
 func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {

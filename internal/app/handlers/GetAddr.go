@@ -10,7 +10,7 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
-// хэндлер для получения оригинального URL по укороченному
+// GetAddr хэндлер для получения оригинального URL по укороченному
 func GetAddr(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
@@ -19,8 +19,9 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 		var err error
-
+		// получаем индентификатор из URL запроса
 		ident := path.Base(req.URL.String())
+		// запрашиваем оригинальный URL и проверяем был ли он удален
 		redir, err := hd.Dt.Get(ident)
 		if err == models.ErrorDeleted {
 			logger.Log.Info("URL was delted", zap.String("ID", ident))
@@ -31,10 +32,9 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-
+		// добавляем оригинальный URL в заголовок location
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)
-		//logger.Log.Info("Response status is 307 TemporaryRedirect.", zap.String("location", res.Header().Get("Location")), zap.Int("size", len(redir)))
 
 	}
 }

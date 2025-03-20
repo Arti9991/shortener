@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-
+	// запуск сервера со всеми настройками
 	err := server.RunServer()
 	if err != nil {
 		log.Fatal(err)

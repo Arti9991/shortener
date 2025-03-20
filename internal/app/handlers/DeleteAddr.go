@@ -11,7 +11,7 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
-// хэндлер для пометки URL как удаленного в базе данных
+// DeleteAddr хэндлер для пометки URL как удаленного в базе данных
 func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodDelete {
@@ -43,8 +43,8 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 	}
 }
 
-// функция с горутиной, считывающей данные из тела запроса, декдоированием из JSON
-// и отправки данных в канал
+// ThreadDecode функция с горутиной, считывающей данные из тела запроса,
+// декдоированием из JSON и отправки данных в канал для проставки флага
 func ThreadDecode(body []byte, UserID string, outCh chan models.DeleteURL) {
 
 	go func() {

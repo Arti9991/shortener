@@ -1,32 +1,20 @@
 package handlers
 
 import (
-	"golang.org/x/exp/rand"
-
 	"github.com/Arti9991/shortener/internal/models"
 	"github.com/Arti9991/shortener/internal/storage"
 	"github.com/Arti9991/shortener/internal/storage/files"
 )
 
-func randomString(n int) string {
-
-	var bt []byte
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	for range n {
-		bt = append(bt, charset[rand.Intn(len(charset))])
-	}
-
-	return string(bt)
-}
-
+// HandlersData структура со всей информацией для хэндлеров:
 type HandlersData struct {
-	Dt       storage.StorFunc
-	BaseAdr  string
-	Files    *files.FileData
-	OutDelCh chan models.DeleteURL
+	Dt       storage.StorFunc      // интерфейс хранилища
+	BaseAdr  string                // базовый адрес возвращаемого URL
+	Files    *files.FileData       // данные о файле хранения URL (если он есть)
+	OutDelCh chan models.DeleteURL // канал для отправки URL подлежащих удалению
 }
 
-// инциализация структуры с параметрами хэндлеров
+// NewHandlersData инциализация структуры с параметрами хэндлеров
 func NewHandlersData(stor storage.StorFunc, base string, files *files.FileData, OutDelCh chan models.DeleteURL) *HandlersData {
 	return &HandlersData{Dt: stor, BaseAdr: base, Files: files, OutDelCh: OutDelCh}
 }

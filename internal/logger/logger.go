@@ -10,7 +10,7 @@ import (
 
 var Log *zap.Logger = zap.NewNop()
 
-// инициализация zap логгера (уровень логгирования INFO)
+// Initialize инициализация zap логгера (уровень логгирования INFO)
 func Initialize(level string) error {
 	// преобразуем текстовый уровень логирования в zap.AtomicLevel
 	lvl, err := zap.ParseAtomicLevel(level)
@@ -32,7 +32,7 @@ func Initialize(level string) error {
 	return nil
 }
 
-// middleware обработчик для zap логгера с логированием полученных и отправленных запросов
+// MiddlewareLogger обработчик для zap логгера с логированием полученных и отправленных запросов
 func MiddlewareLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		start := time.Now()
@@ -60,13 +60,13 @@ func MiddlewareLogger(h http.Handler) http.Handler {
 
 // переопределение методов write и WriteHeader для удобного использования middleware
 type (
-	//структура для хранения сведений об ответе
+	// структура для хранения сведений об ответе
 	responseData struct {
 		status int
 		size   int
 	}
 
-	//реализация http.ResponseWriter
+	// реализация http.ResponseWriter
 	loggingResponseWriter struct {
 		http.ResponseWriter //встраиваем оригинальный http.ResponseWriter
 		responseData        *responseData

@@ -4,6 +4,7 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 )
 
+// StorFunc интерфейс для хранилища URL.
 type StorFunc interface {
 	Save(key string, val string, UserID string) error
 	Get(key string) (string, error)

@@ -1,3 +1,5 @@
+// Здесь производится запуск и настройка сервера.
+// В Example содержится пример работы с эндпоинтами.
 package server
 
 import (
@@ -21,15 +23,16 @@ import (
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
 )
 
+// Server хранит всю информацию для работы сервера.
 type Server struct {
-	Inmemory *inmemory.Data
-	Config   config.Config
-	Files    *files.FileData
-	DataBase *database.DBStor
-	hd       *handlers.HandlersData
+	Inmemory *inmemory.Data         // хранение данных в памяти
+	Config   config.Config          // конфигурация сервера
+	Files    *files.FileData        // хранение данных в файле
+	DataBase *database.DBStor       // хранение данных в базе данных
+	hd       *handlers.HandlersData // струтктура с информацией для хэндлеров
 }
 
-// инциализация всех необходимых струткур
+// NewServer инциализирует все необходимые струткуры.
 func NewServer() (*Server, error) {
 	// установка сида для случайных чисел
 	rand.Seed(uint64(time.Now().UnixNano()))
@@ -41,12 +44,13 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	// инциализация хранилища с нужным интерфейсом
 	Serv.StorInit()
 
 	return &Serv, nil
 }
 
-// создание роутера chi для хэндлеров
+// MainRouter создает роутер chi для хэндлеров.
 func (s *Server) MainRouter() chi.Router {
 
 	rt := chi.NewRouter()
@@ -63,14 +67,10 @@ func (s *Server) MainRouter() chi.Router {
 	rt.Get("/api/user/urls", handlers.GetAddrUser(s.hd))
 	rt.Delete("/api/user/urls", handlers.DeleteAddr(s.hd))
 
-	//rt.Mount("/debug/pprof/", http.DefaultServeMux)
-
-	//rt.Handle("/debug/pprof/", http.DefaultServeMux)
-
 	return rt
 }
 
-// запуск сервера со всеми полученными параметрами
+// RunServer запускает сервер со всеми полученными параметрами.
 func RunServer() error {
 	serv, err := NewServer()
 	if err != nil {
@@ -89,9 +89,10 @@ func RunServer() error {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}
 
-	// запуск горутины (описана в initStor.go)
+	// запуск горутины (описана в initStor.go).
 	RunDeleteStor(*serv.hd)
 
+	// запуск сервера.
 	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
 
 	return err
