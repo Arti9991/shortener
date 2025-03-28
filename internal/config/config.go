@@ -7,15 +7,16 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
+// Config структура со всемии конфигурируемыми параметрами.
 type Config struct {
-	HostAdr   string `env:"SERVER_ADDRESS"`
-	BaseAdr   string `env:"BASE_URL"`
-	LoggLevel string `env:"LOG_LEVEL"`
-	FilePath  string `env:"FILE_STORAGE_PATH"`
-	DBAddress string `env:"DATABASE_DSN"`
+	HostAdr   string `env:"SERVER_ADDRESS"`    // адрес сервера
+	BaseAdr   string `env:"BASE_URL"`          // базовый адрес возвращаемого URL
+	LoggLevel string `env:"LOG_LEVEL"`         // уровень логгирования
+	FilePath  string `env:"FILE_STORAGE_PATH"` // путь к файлу хранения
+	DBAddress string `env:"DATABASE_DSN"`      // данные для подключения к базе
 }
 
-// инициализация конфигурации для чтения флагов и переменных окружения
+// InitConf инициализация конфигурации для чтения флагов и переменных окружения.
 func InitConf() Config {
 	var conf Config
 
@@ -33,7 +34,7 @@ func InitConf() Config {
 	return conf
 }
 
-// инициализация тестовой конфигурации с заданными параметрами
+// InitConfTests инициализация тестовой конфигурации с заданными параметрами.
 func InitConfTests() Config {
 	var conf Config
 	conf.HostAdr = "localhost:8080"

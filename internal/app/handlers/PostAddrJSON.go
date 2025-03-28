@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Arti9991/shortener/internal/logger"
-	"github.com/Arti9991/shortener/internal/models"
 	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
+
+	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 )
 
-// хэндлер создания укороченного URL в формате JSON
+// PostAddr хэндлер для сохранения оригинального URL и создание укороченного в формате JSON.
 func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
@@ -39,7 +40,7 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 		UserID := UserInfo.UserID
 		//fmt.Println(UserID)
 		//генерация рандомной строки
-		hashStr := randomString(8)
+		hashStr := models.RandomString(8)
 
 		// сохранение URL в память или в базу
 		err = hd.Dt.Save(hashStr, IncomeURL.URL, UserID)

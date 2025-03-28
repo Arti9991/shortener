@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Arti9991/shortener/internal/logger"
 	"go.uber.org/zap"
+
+	"github.com/Arti9991/shortener/internal/logger"
 )
 
 // compressWriter реализует интерфейс http.ResponseWriter и позволяет прозрачно для сервера
@@ -24,14 +25,17 @@ func newCompressWriter(res http.ResponseWriter) *compressWriter {
 	}
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressWriter) Header() http.Header {
 	return c.res.Header()
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressWriter) Write(p []byte) (int, error) {
 	return c.zres.Write(p)
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressWriter) WriteHeader(statusCode int) {
 	if statusCode < 300 {
 		c.res.Header().Set("Content-Encoding", "gzip")
@@ -63,10 +67,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Переопределение функции для иннтерфейса.
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Переопределение функции для иннтерфейса.
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err
@@ -75,8 +81,8 @@ func (c *compressReader) Close() error {
 }
 
 // middleware обработчик для сжатия запросов и ответов в формате gzip
-func MiddlewareGzip(h http.HandlerFunc) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+func MiddlewareGzip(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// по умолчанию устанавливаем оригинальный http.ResponseWriter как тот,
 		// который будем передавать следующей функции
 		ores := res
@@ -115,5 +121,5 @@ func MiddlewareGzip(h http.HandlerFunc) http.HandlerFunc {
 
 		// передаём управление хендлеру
 		h.ServeHTTP(ores, req)
-	}
+	})
 }

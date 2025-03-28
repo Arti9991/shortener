@@ -5,41 +5,44 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/Arti9991/shortener/internal/logger"
-	"github.com/Arti9991/shortener/internal/models"
-	"github.com/Arti9991/shortener/internal/storage"
-	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 )
 
-var QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
+// SQL запросы для дальнейших функций.
+var (
+	QuerryCreate = `CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
 	user_id VARCHAR(16),
     hash_id 	VARCHAR(8),
     income_url VARCHAR(100) NOT NULL UNIQUE,
 	delete_flag BOOLEAN NOT NULL DEFAULT FALSE
 	);`
-var QuerrySave = `INSERT INTO urls (id, user_id, hash_id, income_url)
+	QuerrySave = `INSERT INTO urls (id, user_id, hash_id, income_url)
 	VALUES  (DEFAULT, $1, $2, $3);`
-var QuerryGet = `SELECT income_url, delete_flag
+	QuerryGet = `SELECT income_url, delete_flag
 	FROM urls WHERE hash_id = $1 LIMIT 1;`
-var QuerryGetOrig = `SELECT hash_id
+	QuerryGetOrig = `SELECT hash_id
 	FROM urls WHERE income_url = $1 LIMIT 1;`
-var QuerryGetUser = `SELECT hash_id, income_url
+	QuerryGetUser = `SELECT hash_id, income_url
 	FROM urls WHERE user_id = $1;`
-var QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
+	QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
 	WHERE user_id = ($1) AND hash_id = ANY($2);`
 
+	QuerryDropTable = `DROP TABLE urls;` // только для тестов!!!
+)
+
+// DBStor структура для интерфейсов базы данных.
 type DBStor struct {
-	storage.StorFunc
-	File    *files.FileData
-	DB      *sql.DB
-	DBInfo  string
-	InFiles bool // флаг, указывающий на характер хранения данных (true - хранение в файле)
+	DB      *sql.DB // соединение с базой
+	DBInfo  string  // информация для подключения к базе
+	InFiles bool    // флаг, указывающий на характер хранения данных (true - хранение в файле)
 }
 
-// инициализация хранилища и создание/подключение к таблице
+// DBinit инициализация хранилища и создание/подключение к таблице.
 func DBinit(DBInfo string) (*DBStor, error) {
 	var db DBStor
 	var err error
@@ -66,7 +69,7 @@ func DBinit(DBInfo string) (*DBStor, error) {
 	return &db, nil
 }
 
-// сохранение полученных значений в таблицу SQL
+// Save сохранение полученных значений в таблицу SQL.
 func (db *DBStor) Save(key string, val string, UserID string) error {
 	if db.InFiles {
 		return nil
@@ -85,7 +88,7 @@ func (db *DBStor) Save(key string, val string, UserID string) error {
 	return nil
 }
 
-// получение значений из таблицы SQL по ключу
+// Get получение значений из таблицы SQL по ключу.
 func (db *DBStor) Get(key string) (string, error) {
 	if db.InFiles {
 		return "", nil
@@ -105,8 +108,8 @@ func (db *DBStor) Get(key string) (string, error) {
 	return val, nil
 }
 
-// получение значений из таблицы SQL по значению
-// (для случаевв если переданный URL сожержится в базе)
+// GetOrig получение значений из таблицы SQL по значению
+// (для случаевв если переданный URL сожержится в базе).
 func (db *DBStor) GetOrig(val string) (string, error) {
 	var err error
 	var key string
@@ -119,14 +122,13 @@ func (db *DBStor) GetOrig(val string) (string, error) {
 	return key, nil
 }
 
-// получение всех сокращенных и оригинальных URL для конкретного пользователя
+// GetUser получение всех сокращенных и оригинальных URL для конкретного пользователя.
 func (db *DBStor) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
 	if db.InFiles {
 		return nil, nil
 	}
 	var err error
 	var OutBuff models.UserBuff
-	//for _, hash := range d.UserKeys[UserID] {
 	rows, err := db.DB.Query(QuerryGetUser, UserID)
 	if err != nil {
 		return nil, err
@@ -154,14 +156,14 @@ func (db *DBStor) GetUser(UserID string, BaseAdr string) (models.UserBuff, error
 	return OutBuff, nil
 }
 
-// сохранение значений в таблицу при помощи транзакций
-// (для случая с большим количеством URL на входе)
+// SaveTx сохранение значений в таблицу при помощи транзакций
+// (для случая с большим количеством URL на входе).
 func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error) {
 	if db.InFiles {
 		return nil, nil
 	}
 
-	var OutBuff models.OutBuff
+	OutBuff := make(models.OutBuff, len(InURLs))
 
 	//подготовка транзакции
 	tx, err := db.DB.Begin()
@@ -169,8 +171,8 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 		db.InFiles = true
 		return nil, err
 	}
-	// потоковое чтение JSON и сохранение в базу по транзакциям
-	for _, income := range InURLs {
+	// потоковое чтение JSON и сохранение в базу по транзакциям.
+	for i, income := range InURLs {
 		hashStr := income.Hash
 		user := income.UserID
 
@@ -181,17 +183,11 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 			return nil, err
 		}
 
-		// //сохранение URL в файле
-		// err = db.File.FileSave(hashStr, IncomeURL.URL)
-		// if err != nil {
-		// 	logger.Log.Info("Error in safe to File")
-		// }
-
 		var OutURL models.BatchOutURL
 		OutURL.ShortURL = BaseAdr + "/" + hashStr
 		OutURL.CorrID = income.CorrID
 
-		OutBuff = append(OutBuff, OutURL)
+		OutBuff[i] = OutURL
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -202,7 +198,7 @@ func (db *DBStor) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, 
 	return OutBuff, nil
 }
 
-// проставление флагов в базу о том, что URL удален из базы данных
+// Delete проставление флагов в базу о том, что URL удален из базы данных.
 func (db *DBStor) Delete(keys []string, UserID string) error {
 	if db.InFiles {
 		return nil
@@ -217,7 +213,17 @@ func (db *DBStor) Delete(keys []string, UserID string) error {
 	return nil
 }
 
-// проверка соединения с базой данных
+// DropTable сброс таблицы (только для тестов!!!).
+func (db *DBStor) DropTable() error {
+	var err error
+	_, err = db.DB.Exec(QuerryDropTable)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Ping проверка соединения с базой данных.
 func (db *DBStor) Ping() error {
 	var err error
 	defer db.DB.Close()
@@ -227,6 +233,7 @@ func (db *DBStor) Ping() error {
 	return nil
 }
 
+// проверка возвращаемрй ошибки на ошибку уникальности.
 func (db *DBStor) CodeIsUniqueViolation(err error) bool {
 	strErr := err.Error()
 	return strings.Contains(strErr, pgerrcode.UniqueViolation)

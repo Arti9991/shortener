@@ -7,8 +7,9 @@ package mocks
 import (
 	reflect "reflect"
 
-	models "github.com/Arti9991/shortener/internal/models"
 	gomock "github.com/golang/mock/gomock"
+
+	models "github.com/Arti9991/shortener/internal/models"
 )
 
 // MockStorFunc is a mock of StorFunc interface.

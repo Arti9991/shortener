@@ -1,8 +1,17 @@
+// Здесь производится запуск и настройка сервера.
+// В Example содержится пример работы с эндпоинтами.
 package server
 
 import (
 	"net/http"
 	"time"
+
+	_ "net/http/pprof" // подключаем пакет pprof
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
+	"golang.org/x/exp/rand"
 
 	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/app/cmpgzip"
@@ -12,20 +21,18 @@ import (
 	"github.com/Arti9991/shortener/internal/storage/database"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
-	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
-	"golang.org/x/exp/rand"
 )
 
+// Server хранит всю информацию для работы сервера.
 type Server struct {
-	Inmemory *inmemory.Data
-	Config   config.Config
-	Files    *files.FileData
-	DataBase *database.DBStor
-	hd       *handlers.HandlersData
+	Inmemory *inmemory.Data         // хранение данных в памяти
+	Config   config.Config          // конфигурация сервера
+	Files    *files.FileData        // хранение данных в файле
+	DataBase *database.DBStor       // хранение данных в базе данных
+	hd       *handlers.HandlersData // струтктура с информацией для хэндлеров
 }
 
-// инциализация всех необходимых струткур
+// NewServer инциализирует все необходимые струткуры.
 func NewServer() (*Server, error) {
 	// установка сида для случайных чисел
 	rand.Seed(uint64(time.Now().UnixNano()))
@@ -37,27 +44,33 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	// инциализация хранилища с нужным интерфейсом
 	Serv.StorInit()
 
 	return &Serv, nil
 }
 
-// создание роутера chi для хэндлеров
+// MainRouter создает роутер chi для хэндлеров.
 func (s *Server) MainRouter() chi.Router {
 
 	rt := chi.NewRouter()
-	rt.Post("/", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth((handlers.PostAddr(s.hd))))))
-	rt.Get("/{id}", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.GetAddr(s.hd)))))
-	rt.Get("/ping", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.Ping(s.hd)))))
-	rt.Post("/api/shorten", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostAddrJSON(s.hd)))))
-	rt.Post("/api/shorten/batch", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.PostBatch(s.hd)))))
-	rt.Get("/api/user/urls", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.GetAddrUser(s.hd)))))
-	rt.Delete("/api/user/urls", logger.MiddlewareLogger(cmpgzip.MiddlewareGzip(auth.MiddlewareAuth(handlers.DeleteAddr(s.hd)))))
+
+	rt.Use(logger.MiddlewareLogger, cmpgzip.MiddlewareGzip, auth.MiddlewareAuth)
+
+	rt.Mount("/debug", middleware.Profiler())
+
+	rt.Post("/", handlers.PostAddr(s.hd))
+	rt.Get("/{id}", handlers.GetAddr(s.hd))
+	rt.Get("/ping", handlers.Ping(s.hd))
+	rt.Post("/api/shorten", handlers.PostAddrJSON(s.hd))
+	rt.Post("/api/shorten/batch", handlers.PostBatch(s.hd))
+	rt.Get("/api/user/urls", handlers.GetAddrUser(s.hd))
+	rt.Delete("/api/user/urls", handlers.DeleteAddr(s.hd))
 
 	return rt
 }
 
-// запуск сервера со всеми полученными параметрами
+// RunServer запускает сервер со всеми полученными параметрами.
 func RunServer() error {
 	serv, err := NewServer()
 	if err != nil {
@@ -76,9 +89,11 @@ func RunServer() error {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}
 
-	// запуск горутины (описана в initStor.go)
+	// запуск горутины (описана в initStor.go).
 	RunDeleteStor(*serv.hd)
 
+	// запуск сервера.
 	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
+
 	return err
 }

@@ -8,9 +8,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Объявление zap логгера.
 var Log *zap.Logger = zap.NewNop()
 
-// инициализация zap логгера (уровень логгирования INFO)
+// Initialize инициализация zap логгера (уровень логгирования INFO)
 func Initialize(level string) error {
 	// преобразуем текстовый уровень логирования в zap.AtomicLevel
 	lvl, err := zap.ParseAtomicLevel(level)
@@ -32,8 +33,8 @@ func Initialize(level string) error {
 	return nil
 }
 
-// middleware обработчик для zap логгера с логированием полученных и отправленных запросов
-func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
+// MiddlewareLogger обработчик для zap логгера с логированием полученных и отправленных запросов
+func MiddlewareLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 		responseData := &responseData{
@@ -44,7 +45,7 @@ func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
 			ResponseWriter: res, //встраиваем оригинальный http.ResponseWriter
 			responseData:   responseData,
 		}
-		h(&reslog, req)
+		h.ServeHTTP(&reslog, req)
 		duration := time.Since(start)
 		Log.Info("got incoming HTTP request",
 			zap.String("URI", req.RequestURI),
@@ -60,19 +61,20 @@ func MiddlewareLogger(h http.HandlerFunc) http.HandlerFunc {
 
 // переопределение методов write и WriteHeader для удобного использования middleware
 type (
-	//структура для хранения сведений об ответе
+	// структура для хранения сведений об ответе
 	responseData struct {
 		status int
 		size   int
 	}
 
-	//реализация http.ResponseWriter
+	// реализация http.ResponseWriter
 	loggingResponseWriter struct {
 		http.ResponseWriter //встраиваем оригинальный http.ResponseWriter
 		responseData        *responseData
 	}
 )
 
+// Переопределение функции для интерфейса.
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	//запись ответа, используя оригинальный http.ResponseWriter
 	size, err := r.ResponseWriter.Write(b)
@@ -80,6 +82,7 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
+// Переопределение функции для интерфейса.
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	//запись кода статуса, используя оригинальный http.ResponseWriter
 	r.ResponseWriter.WriteHeader(statusCode)

@@ -33,7 +33,7 @@ git fetch template && git checkout template/main .github
 
 Например, запуск тестов для iter12 из под GitBash для windows. 
 ```
-shortenertest -test.v -test.run=^TestIteration12$ -binary-path=cmd/shortener/shortener -database-dsn="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
+./shortenertest -test.v -test.run=^TestIteration12$ -binary-path=cmd/shortener/shortener -database-dsn="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
 ```
 
 Комманды для ручной проверки сервера (на данной итерации)

@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Arti9991/shortener/internal/logger"
-	"github.com/Arti9991/shortener/internal/models"
 	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
+
+	"github.com/Arti9991/shortener/internal/logger"
+	"github.com/Arti9991/shortener/internal/models"
 )
 
-// хэндлер создания укороченного URL
+// PostAddr хэндлер для сохранения оригинального URL и создание укороченного.
 func PostAddr(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
@@ -25,13 +26,12 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-
+		// получение из контекста UserID и информации о регистрации
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
-		//fmt.Println(UserID)
-		//UserID := "1"
+
 		//генерация рандомной строки
-		hashStr := randomString(8)
+		hashStr := models.RandomString(8)
 
 		// сохранение URL в базу или в память
 		err = hd.Dt.Save(hashStr, string(body), UserID)

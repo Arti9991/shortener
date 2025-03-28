@@ -5,27 +5,24 @@ import (
 	"sync"
 
 	"github.com/Arti9991/shortener/internal/models"
-	"github.com/Arti9991/shortener/internal/storage"
-	"github.com/Arti9991/shortener/internal/storage/files"
 )
 
+// структура с картой для хранения всех URL.
 type Data struct {
-	storage.StorFunc
-	sync.Mutex
-	File      *files.FileData
-	ShortUrls map[string]string
-	UserKeys  map[string][]string
+	sync.Mutex                     // мьютекс для конкуретного доступа
+	ShortUrls  map[string]string   // карта для хранения коротких и длинных URL
+	UserKeys   map[string][]string // карта для хранения всех URL у пользователя
 }
 
 // инициализация карты для хранения пар:
-// ключ (сокращенный URL) - значение (исходный URL)
-func NewData(file *files.FileData) *Data {
+// ключ (сокращенный URL) - значение (исходный URL).
+func NewData() *Data {
 	dt := make(map[string]string)
 	us := make(map[string][]string)
-	return &Data{File: file, ShortUrls: dt, UserKeys: us}
+	return &Data{ShortUrls: dt, UserKeys: us}
 }
 
-// добавление пары ключ (сокращенный URL) - значение (исходный URL)
+// Save добавление пары ключ (сокращенный URL) - значение (исходный URL).
 func (d *Data) Save(key string, value string, UserID string) error {
 	d.Lock()
 	defer d.Unlock()
@@ -37,7 +34,7 @@ func (d *Data) Save(key string, value string, UserID string) error {
 	return nil
 }
 
-// получение оригнального URL по сокращенному
+// Get получение оригнального URL по сокращенному.
 func (d *Data) Get(key string) (string, error) {
 	d.Lock()
 	defer d.Unlock()
@@ -48,7 +45,7 @@ func (d *Data) Get(key string) (string, error) {
 	}
 }
 
-// получение хэша по оригиналу URL
+// GetOrig получение хэша по оригиналу URL.
 func (d *Data) GetOrig(val string) (string, error) {
 	d.Lock()
 	defer d.Unlock()
@@ -60,7 +57,7 @@ func (d *Data) GetOrig(val string) (string, error) {
 	return "", models.ErrorNoURL
 }
 
-// получение всех сокращенных и оригинальных URL для конкретного пользователя
+// GetUser получение всех сокращенных и оригинальных URL для конкретного пользователя.
 func (d *Data) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
 	d.Lock()
 	defer d.Unlock()
@@ -77,7 +74,7 @@ func (d *Data) GetUser(UserID string, BaseAdr string) (models.UserBuff, error) {
 	return OutBuff, nil
 }
 
-// множестевнное сохранение во внутреннюю память
+// SaveTx множестевнное сохранение во внутреннюю память.
 func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error) {
 
 	var OutBuff models.OutBuff
@@ -92,12 +89,6 @@ func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, err
 			d.UserKeys[income.UserID] = append(d.UserKeys[income.UserID], hashStr)
 		}
 
-		// // сохранение URL в файле
-		// err = d.File.FileSave(hashStr, IncomeURL.URL)
-		// if err != nil {
-		// 	logger.Log.Info("Error in safe to File")
-		// }
-
 		var OutURL models.BatchOutURL
 		OutURL.ShortURL = BaseAdr + "/" + hashStr
 		OutURL.CorrID = income.CorrID
@@ -107,17 +98,17 @@ func (d *Data) SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, err
 	return OutBuff, nil
 }
 
-// заглушка функции ping для реализации DuckType
+// Ping заглушка функции ping для реализации DuckType.
 func (d *Data) Ping() error {
 	return nil
 }
 
-// заглушка для реализации интерфейса хранилища
+// Delete заглушка для реализации интерфейса хранилища.
 func (d *Data) Delete(keys []string, UserID string) error {
 	return errors.New("unable for inmemory mode")
 }
 
-// сброс всех значений в карте
+// ClearStor сброс всех значений в карте
 func (d *Data) ClearStor() {
 	d.Lock()
 	defer d.Unlock()

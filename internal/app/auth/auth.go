@@ -7,16 +7,21 @@ import (
 	"encoding/hex"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
-	"go.uber.org/zap"
 )
 
+// UserSession значение для хранения user ID в cookie
 var UserSession = "userID"
+
+// временный ключ
 var key = []byte{183, 21, 219, 229, 199, 223, 64, 207, 94, 48, 138, 6, 9, 250, 124, 17}
 
-func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+// MiddlewareAuth middleware авторизация пользователя
+func MiddlewareAuth(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var UserExist bool
 		var UserID string
 
@@ -50,9 +55,10 @@ func MiddlewareAuth(h http.HandlerFunc) http.HandlerFunc {
 		req = req.WithContext(ctx)
 		// передаём управление хендлеру
 		h.ServeHTTP(res, req)
-	}
+	})
 }
 
+// MakeCiper создание кодировщика
 func MakeCiper() (cipher.Block, error) {
 	// получаем cipher.Block
 	aesblock, err := aes.NewCipher(key)
@@ -62,6 +68,7 @@ func MakeCiper() (cipher.Block, error) {
 	return aesblock, nil
 }
 
+// EncodeUserID создание нового UserID
 func EncodeUserID(UserID string) (string, error) {
 	cip, err := MakeCiper()
 	if err != nil {
@@ -74,6 +81,7 @@ func EncodeUserID(UserID string) (string, error) {
 	return hex.EncodeToString(UserIDenc), nil
 }
 
+// DecodeUserID декодирование полученного UserID
 func DecodeUserID(UserIDenc64 string) (string, error) {
 	UserIDenc, err := hex.DecodeString(UserIDenc64)
 	if err != nil {
