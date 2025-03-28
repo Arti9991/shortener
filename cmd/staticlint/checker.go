@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/asmdecl"
@@ -42,11 +44,24 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unsafeptr"
 	"golang.org/x/tools/go/analysis/passes/unusedresult"
 	"golang.org/x/tools/go/analysis/passes/unusedwrite"
+	"honnef.co/go/tools/staticcheck"
 )
 
 func main() {
-
-	mychecks := []*analysis.Analyzer{
+	// // определяем map подключаемых правил
+	// checks := map[string]bool{
+	// 	"SA5000": true,
+	// 	"SA6000": true,
+	// 	"SA9004": true,
+	// }
+	var mychecks []*analysis.Analyzer
+	for _, v := range staticcheck.Analyzers {
+		// добавляем в массив нужные проверки
+		if strings.Contains(v.Analyzer.Name, "SA") {
+			mychecks = append(mychecks, v.Analyzer)
+		}
+	}
+	mychecks = append(mychecks,
 		// all linters from golang.org/x/tools/go/analysis/passes
 		asmdecl.Analyzer,
 		assign.Analyzer,
@@ -87,6 +102,6 @@ func main() {
 		unsafeptr.Analyzer,
 		unusedresult.Analyzer,
 		unusedwrite.Analyzer,
-	}
+	)
 	multichecker.Main(mychecks...)
 }
