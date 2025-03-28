@@ -71,11 +71,11 @@ func testRequests(t *testing.T, ts *httptest.Server, method,
 func TestRouter(t *testing.T) {
 	///
 	type want struct {
-		statusCode1  int
-		statusCode2  int
 		contentType1 string
 		contentType2 string
 		locations    []string
+		statusCode1  int
+		statusCode2  int
 	}
 	tests := []struct {
 		name    string
@@ -237,9 +237,9 @@ func testRequestCompress(t *testing.T, ts *httptest.Server, method,
 func TestRouterCompress(t *testing.T) {
 	///
 	type want struct {
-		statusCode1     int
 		contentType     string
 		contentEncoding string
+		statusCode1     int
 	}
 	tests := []struct {
 		name    string
@@ -313,11 +313,11 @@ func testRequestsBench(b *testing.B, ts *httptest.Server, method,
 func BenchmarkServer(b *testing.B) {
 	///
 	type want struct {
-		statusCode1  int
-		statusCode2  int
 		contentType1 string
 		contentType2 string
 		location     string
+		statusCode1  int
+		statusCode2  int
 	}
 	tests := []struct {
 		name    string

@@ -59,8 +59,8 @@ type UserInfo struct {
 // DeleteURL структура для передачи множества URL
 // в канал, подлежащих удалению.
 type DeleteURL struct {
-	ShortURL []string
 	UserID   string `json:"-"`
+	ShortURL []string
 }
 
 // RandomString функция для создания случайно строки заданной длинны.

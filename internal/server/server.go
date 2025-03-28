@@ -25,11 +25,11 @@ import (
 
 // Server хранит всю информацию для работы сервера.
 type Server struct {
-	Inmemory *inmemory.Data         // хранение данных в памяти
-	Config   config.Config          // конфигурация сервера
-	Files    *files.FileData        // хранение данных в файле
-	DataBase *database.DBStor       // хранение данных в базе данных
-	hd       *handlers.HandlersData // струтктура с информацией для хэндлеров
+	Inmemory *inmemory.Data
+	Files    *files.FileData
+	DataBase *database.DBStor
+	hd       *handlers.HandlersData
+	Config   config.Config
 }
 
 // NewServer инциализирует все необходимые струткуры.

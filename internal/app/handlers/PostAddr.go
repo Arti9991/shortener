@@ -39,13 +39,13 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			logger.Log.Info("Error in Save", zap.Error(err))
 			if strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 				logger.Log.Info("URL already exicts! Getting shorten version", zap.String("income URL", string(body)))
-				hashStr, err2 := hd.Dt.GetOrig(string(body))
+				hashStr2, err2 := hd.Dt.GetOrig(string(body))
 				if err2 != nil {
 					logger.Log.Info("Error in GetOrig", zap.Error(err2))
 					res.WriteHeader(http.StatusBadRequest)
 					return
 				}
-				ansStr := hd.BaseAdr + "/" + hashStr
+				ansStr := hd.BaseAdr + "/" + hashStr2
 
 				res.Header().Set("content-type", "text/plain")
 				res.WriteHeader(http.StatusConflict)
