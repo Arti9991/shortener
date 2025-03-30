@@ -3,8 +3,8 @@ module checker
 go 1.23.0
 
 require (
+	github.com/fatih/errwrap v1.6.0
 	github.com/gostaticanalysis/unused v0.0.5
-	github.com/kisielk/errcheck v1.9.0
 	golang.org/x/tools v0.31.0
 	honnef.co/go/tools v0.6.1
 )

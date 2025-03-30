@@ -46,6 +46,8 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unusedwrite"
 	"honnef.co/go/tools/staticcheck"
 	"honnef.co/go/tools/stylecheck"
+
+	"github.com/Arti9991/shortener/pkg/exitchecker"
 )
 
 // запуск основной функции для анализатора
@@ -104,6 +106,8 @@ func main() {
 		// extern libs
 		errwrap.Analyzer,
 		unused.Analyzer,
+		// os exit checker
+		exitchecker.Analyzer,
 	)
 	multichecker.Main(mychecks...)
 }

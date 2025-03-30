@@ -1,5 +1,7 @@
 github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c h1:pxW6RcqyfI9/kWtOwnv/G+AzdKuy2ZrqINhenH4HyNs=
 github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
+github.com/fatih/errwrap v1.6.0 h1:OvAnxNd0jmV7YYSCHBU8zCdepQG8X019hOanCDw+gZQ=
+github.com/fatih/errwrap v1.6.0/go.mod h1:gK9SnQPI2m9oGzMrOYa6tZFbdnltBdaSRzUth1SzSe4=
 github.com/google/go-cmp v0.5.1/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
@@ -12,8 +14,6 @@ github.com/gostaticanalysis/ident v0.0.1 h1:LELn9RouFTA2Itg4b4f+uuZVxhjACQxMz1i3
 github.com/gostaticanalysis/ident v0.0.1/go.mod h1:CdGcFBznRljXhnc4Fx6pXhoGag56l+e9WiSA4sevErk=
 github.com/gostaticanalysis/unused v0.0.5 h1:7Y1U54r3kUG9yFLEqWpiZFdL2CxyIJI7CfnbCYhQqiM=
 github.com/gostaticanalysis/unused v0.0.5/go.mod h1:SCEZphM9rdrzDbQr8/yeHfxYODH/u6GqkEoMzsHtD8o=
-github.com/kisielk/errcheck v1.9.0 h1:9xt1zI9EBfcYBvdU1nVrzMzzUPUtPKs9bVSIM3TAb3M=
-github.com/kisielk/errcheck v1.9.0/go.mod h1:kQxWMMVZgIkDq7U8xtG/n2juOjbLgZtedi0D+/VL/i8=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
