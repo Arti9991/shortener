@@ -47,13 +47,13 @@ import (
 	"honnef.co/go/tools/staticcheck"
 	"honnef.co/go/tools/stylecheck"
 
-	"github.com/Arti9991/shortener/pkg/exitchecker"
+	"github.com/Arti9991/shortener/cmd/staticlint/exitchecker"
 )
 
 // запуск основной функции для анализатора
 func main() {
 	var mychecks []*analysis.Analyzer
-	// добавляем в массив все staticcheck проверки
+	// добавляем в массив все staticcheck проверки ("AS")
 	for _, v := range staticcheck.Analyzers {
 		mychecks = append(mychecks, v.Analyzer)
 	}
@@ -107,7 +107,7 @@ func main() {
 		errwrap.Analyzer,
 		unused.Analyzer,
 		// os exit checker
-		exitchecker.Analyzer,
+		exitchecker.ExitAnalyzer,
 	)
 	multichecker.Main(mychecks...)
 }
