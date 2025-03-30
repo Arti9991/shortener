@@ -1,8 +1,8 @@
 package main
 
 import (
-	"strings"
-
+	"github.com/fatih/errwrap/errwrap"
+	"github.com/gostaticanalysis/unused"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/asmdecl"
@@ -45,24 +45,23 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unusedresult"
 	"golang.org/x/tools/go/analysis/passes/unusedwrite"
 	"honnef.co/go/tools/staticcheck"
+	"honnef.co/go/tools/stylecheck"
 )
 
+// запуск основной функции для анализатора
 func main() {
-	// // определяем map подключаемых правил
-	// checks := map[string]bool{
-	// 	"SA5000": true,
-	// 	"SA6000": true,
-	// 	"SA9004": true,
-	// }
 	var mychecks []*analysis.Analyzer
+	// добавляем в массив все staticcheck проверки
 	for _, v := range staticcheck.Analyzers {
-		// добавляем в массив нужные проверки
-		if strings.Contains(v.Analyzer.Name, "SA") {
+		mychecks = append(mychecks, v.Analyzer)
+	}
+	// добавляем проверку на yoda conditions
+	for _, v := range stylecheck.Analyzers {
+		if v.Analyzer.Name == "ST1017" {
 			mychecks = append(mychecks, v.Analyzer)
 		}
 	}
 	mychecks = append(mychecks,
-		// all linters from golang.org/x/tools/go/analysis/passes
 		asmdecl.Analyzer,
 		assign.Analyzer,
 		atomic.Analyzer,
@@ -102,6 +101,9 @@ func main() {
 		unsafeptr.Analyzer,
 		unusedresult.Analyzer,
 		unusedwrite.Analyzer,
+		// extern libs
+		errwrap.Analyzer,
+		unused.Analyzer,
 	)
 	multichecker.Main(mychecks...)
 }
