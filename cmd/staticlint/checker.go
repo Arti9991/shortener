@@ -53,7 +53,7 @@ import (
 // запуск основной функции для анализатора
 func main() {
 	var mychecks []*analysis.Analyzer
-	// добавляем в массив все staticcheck проверки ("AS")
+	// добавляем в массив все staticcheck проверки ("SA")
 	for _, v := range staticcheck.Analyzers {
 		mychecks = append(mychecks, v.Analyzer)
 	}
@@ -63,6 +63,8 @@ func main() {
 			mychecks = append(mychecks, v.Analyzer)
 		}
 	}
+	// добавляем все статические анализаторы из
+	// пакета tools/go/analysis/passes
 	mychecks = append(mychecks,
 		asmdecl.Analyzer,
 		assign.Analyzer,
@@ -103,11 +105,12 @@ func main() {
 		unsafeptr.Analyzer,
 		unusedresult.Analyzer,
 		unusedwrite.Analyzer,
-		// extern libs
+		// сторонние анализаторы
 		errwrap.Analyzer,
 		unused.Analyzer,
-		// os exit checker
+		// мой анализатор os.Exit
 		exitchecker.ExitAnalyzer,
 	)
+	// запуск основной функции проверки
 	multichecker.Main(mychecks...)
 }
