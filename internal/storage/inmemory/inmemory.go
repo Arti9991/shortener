@@ -9,9 +9,9 @@ import (
 
 // структура с картой для хранения всех URL.
 type Data struct {
-	sync.Mutex                     // мьютекс для конкуретного доступа
-	ShortUrls  map[string]string   // карта для хранения коротких и длинных URL
-	UserKeys   map[string][]string // карта для хранения всех URL у пользователя
+	ShortUrls map[string]string
+	UserKeys  map[string][]string
+	sync.Mutex
 }
 
 // инициализация карты для хранения пар:

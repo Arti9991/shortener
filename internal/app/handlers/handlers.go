@@ -8,10 +8,10 @@ import (
 
 // HandlersData структура со всей информацией для хэндлеров.
 type HandlersData struct {
-	Dt       storage.StorFunc      // интерфейс хранилища
-	BaseAdr  string                // базовый адрес возвращаемого URL
-	Files    *files.FileData       // данные о файле хранения URL (если он есть)
-	OutDelCh chan models.DeleteURL // канал для отправки URL подлежащих удалению
+	Dt       storage.StorFunc
+	Files    *files.FileData
+	OutDelCh chan models.DeleteURL
+	BaseAdr  string
 }
 
 // NewHandlersData инциализация структуры с параметрами хэндлеров.

@@ -50,23 +50,23 @@ func BenchmarkStor(b *testing.B) {
 
 	b.Run("STORAGE in memory save", func(b *testing.B) {
 		for i := 0; i < numReps; i++ {
-			err := MemInterface.Save(hashStr[i], URLStr[i], UserID)
-			require.NoError(b, err)
+			err2 := MemInterface.Save(hashStr[i], URLStr[i], UserID)
+			require.NoError(b, err2)
 		}
 	})
 
 	b.Run("STORAGE in memory get", func(b *testing.B) {
 		for i := 0; i < numReps; i++ {
-			res, err := MemInterface.Get(hashStr[i])
-			require.NoError(b, err)
+			res, err2 := MemInterface.Get(hashStr[i])
+			require.NoError(b, err2)
 			assert.Equal(b, res, URLStr[i])
 		}
 	})
 
 	b.Run("STORAGE in file save", func(b *testing.B) {
 		for i := 0; i < numReps; i++ {
-			err := FileInterface.FileSave(hashStr[i], URLStr[i])
-			require.NoError(b, err)
+			err2 := FileInterface.FileSave(hashStr[i], URLStr[i])
+			require.NoError(b, err2)
 		}
 	})
 

@@ -13,16 +13,16 @@ import (
 
 // Структура с информацией о файлах.
 type FileStor struct {
-	ID       int    `json:"uuid"`
 	Shorturl string `json:"short_url"`
 	Origurl  string `json:"original_url"`
+	ID       int    `json:"uuid"`
 }
 
 // структура для кодирования данных.
 type FileData struct {
-	ID       int
 	Path     string
-	InMemory bool //флаг для типа работы с памятью (файл или временная)
+	ID       int
+	InMemory bool
 }
 
 // NewFiles конструктор структуры для работы с файлами. Также он создает/проверяет сам файл.

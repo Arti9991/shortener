@@ -48,9 +48,9 @@ func TestPostAddr(t *testing.T) {
 	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
-		statusCode  int
 		contentType string
 		answer      string
+		statusCode  int
 	}
 
 	tests := []struct {
@@ -132,9 +132,9 @@ func TestPostAddrJSON(t *testing.T) {
 	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
-		statusCode  int
 		contentType string
 		answer      string
+		statusCode  int
 	}
 	tests := []struct {
 		name    string
@@ -206,9 +206,9 @@ func TestGet(t *testing.T) {
 	m := mocks.NewMockStorFunc(ctrl)
 
 	type want struct {
-		statusCode int
-		answer     string
 		err        error
+		answer     string
+		statusCode int
 	}
 	tests := []struct {
 		name    string
@@ -290,11 +290,11 @@ func TestMultuplTasks(t *testing.T) {
 	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
-		statusCode1  int
-		statusCode2  int
 		contentType1 string
 		contentType2 string
 		locations    []string
+		statusCode1  int
+		statusCode2  int
 	}
 	tests := []struct {
 		name    string
@@ -417,9 +417,9 @@ func TestPostBatch(t *testing.T) {
 	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
-		statusCode  int
 		contentType string
 		answers     []string
+		statusCode  int
 	}
 	tests := []struct {
 		name    string
@@ -529,16 +529,16 @@ func TestGetUser(t *testing.T) {
 	m := mocks.NewMockStorFunc(ctrl)
 
 	type want struct {
-		statusCode int
-		answer     models.UserBuff
 		err        error
+		answer     models.UserBuff
+		statusCode int
 	}
 	tests := []struct {
 		name     string
 		userID   string
-		register bool
 		request  string
 		want     want
+		register bool
 	}{
 		{
 			name:     "Simple request for code 200",
@@ -647,16 +647,16 @@ func TestDelete(t *testing.T) {
 	m := mocks.NewMockStorFunc(ctrl)
 
 	type want struct {
-		statusCode int
 		err        error
+		statusCode int
 	}
 	tests := []struct {
+		want     want
 		name     string
 		hashes   string
 		userID   string
-		register bool
 		request  string
-		want     want
+		register bool
 	}{
 		{
 			name:     "Simple request for code 202",
@@ -757,12 +757,12 @@ func BenchmarkHandlers(b *testing.B) {
 	// hdG := NewHandlersData(mP, BaseAdr, files.FilesTest(), DeleteChan)
 
 	type want struct {
-		statusCodePost    int
-		statusCodeGet     int
-		statusCodeGetUser int
 		contentType       string
 		contentTypeJSON   string
 		answer            string
+		statusCodePost    int
+		statusCodeGet     int
+		statusCodeGetUser int
 	}
 
 	tests := struct {
