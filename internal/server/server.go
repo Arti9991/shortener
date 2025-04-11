@@ -93,7 +93,10 @@ func RunServer() error {
 	RunDeleteStor(*serv.hd)
 
 	// запуск сервера.
-	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
-
+	if serv.Config.EnableHTTPS {
+		err = http.ListenAndServeTLS(serv.Config.HostAdr, "server.crt", "server.key", serv.MainRouter())
+	} else {
+		err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
+	}
 	return err
 }
