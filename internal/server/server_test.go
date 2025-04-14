@@ -3,11 +3,13 @@ package server
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -31,7 +33,9 @@ func NewServerTest() *Server {
 	if err != nil {
 		panic(err)
 	}
-	Serv.StorInit()
+	ctx := context.Background()
+	var wg *sync.WaitGroup
+	Serv.StorInit(ctx, wg)
 
 	return &Serv
 }

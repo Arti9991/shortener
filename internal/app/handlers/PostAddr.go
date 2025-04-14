@@ -20,6 +20,10 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
+		// добавляем счетчик для graceful shutdown
+		hd.Wg.Add(1)
+
 		body, err := io.ReadAll(req.Body)
 		if err != nil || string(body) == "" {
 			logger.Log.Info("Bad request body", zap.String("body", string(body)))
@@ -65,5 +69,6 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(ansStr))
+		hd.Wg.Done()
 	}
 }

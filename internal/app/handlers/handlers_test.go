@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -31,6 +32,8 @@ var Files = files.FilesTest()
 
 var UserID = "125"
 var DeleteChan = make(chan models.DeleteURL)
+var ctx = context.Background()
+var wg *sync.WaitGroup
 
 func TestPostAddr(t *testing.T) {
 	// создаём контроллер
@@ -45,7 +48,7 @@ func TestPostAddr(t *testing.T) {
 		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(1)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 	type want struct {
 		contentType string
@@ -129,7 +132,7 @@ func TestPostAddrJSON(t *testing.T) {
 		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(2)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 	type want struct {
 		contentType string
@@ -264,7 +267,7 @@ func TestGet(t *testing.T) {
 			Return(test.want.answer, test.want.err).
 			MaxTimes(1)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
@@ -287,7 +290,7 @@ func TestGet(t *testing.T) {
 
 func TestMultuplTasks(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan)
+	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 	type want struct {
 		contentType1 string
@@ -414,7 +417,7 @@ func TestMultuplTasks(t *testing.T) {
 
 func TestPostBatch(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan)
+	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 	type want struct {
 		contentType string
@@ -614,7 +617,7 @@ func TestGetUser(t *testing.T) {
 			Return(test.want.answer, test.want.err).
 			MaxTimes(5)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
@@ -688,7 +691,7 @@ func TestDelete(t *testing.T) {
 			Return(test.want.err).
 			MaxTimes(5)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodDelete, test.request, bytes.NewBuffer([]byte(test.hashes)))
@@ -744,7 +747,7 @@ func BenchmarkHandlers(b *testing.B) {
 	// 	Return(nil, nil).
 	// 	MinTimes(1)
 
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, wg)
 
 	// создаём объект-заглушку для GET
 	//mG := mocks.NewMockStorFunc(ctrl)

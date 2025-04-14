@@ -26,6 +26,9 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
+		// добавляем счетчик для graceful shutdown
+		hd.Wg.Add(1)
+
 		var IncomeURL models.IncomeURL
 		var OutcomeURL models.OutcomeURL
 
@@ -88,5 +91,6 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 		res.Header().Set("content-type", "application/json")
 		res.WriteHeader(http.StatusCreated)
 		res.Write(out)
+		hd.Wg.Done()
 	}
 }

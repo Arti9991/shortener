@@ -12,6 +12,10 @@ import (
 // Ping хэндлер для проверки соединения с базой данных.
 func Ping(hd *HandlersData) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+
+		// добавляем счетчик для graceful shutdown
+		hd.Wg.Add(1)
+
 		err := hd.Dt.Ping()
 		if err != nil {
 			logger.Log.Info("Error in ping database!", zap.Error(err))
@@ -19,5 +23,6 @@ func Ping(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 		res.WriteHeader(http.StatusOK)
+		hd.Wg.Done()
 	}
 }
