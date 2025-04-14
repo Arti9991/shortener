@@ -111,9 +111,18 @@ func RunServer() error {
 	// запуск сервера.
 	if serv.Config.EnableHTTPS {
 		err = srv.ListenAndServeTLS("server.crt", "server.key")
+		if err != nil && err != http.ErrServerClosed {
+			logger.Log.Info("Error in ListenAndServeTLS", zap.Error(err))
+			return err
+		}
 	} else {
 		err = srv.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			logger.Log.Info("Error in ListenAndServe", zap.Error(err))
+			return err
+		}
 	}
+	serv.hd.Wg.Wait()
 	logger.Log.Info("Server shutted down!")
-	return err
+	return nil
 }

@@ -87,10 +87,10 @@ func PostAddrJSON(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		hd.Wg.Done()
 
 		res.Header().Set("content-type", "application/json")
 		res.WriteHeader(http.StatusCreated)
 		res.Write(out)
-		hd.Wg.Done()
 	}
 }

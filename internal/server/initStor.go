@@ -127,10 +127,10 @@ func RunWaitShutDown(hd *handlers.HandlersData, server *http.Server) {
 		<-hd.Ctx.Done()
 		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
 		logger.Log.Info("Graceful shutdown...")
-		hd.Wg.Wait()
 		if err := server.Shutdown(context.Background()); err != nil {
 			// ошибки закрытия Listener
 			logger.Log.Info("Error in HTTP server Shutdown: %v", zap.Error(err))
 		}
+		hd.Wg.Wait()
 	}()
 }

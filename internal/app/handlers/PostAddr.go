@@ -66,9 +66,9 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 
 		ansStr := hd.BaseAdr + "/" + hashStr
 
+		hd.Wg.Done()
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(ansStr))
-		hd.Wg.Done()
 	}
 }

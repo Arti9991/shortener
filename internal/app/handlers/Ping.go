@@ -22,7 +22,7 @@ func Ping(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		res.WriteHeader(http.StatusOK)
 		hd.Wg.Done()
+		res.WriteHeader(http.StatusOK)
 	}
 }

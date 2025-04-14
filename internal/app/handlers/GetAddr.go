@@ -35,9 +35,9 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		hd.Wg.Done()
 		// добавляем оригинальный URL в заголовок location.
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)
-		hd.Wg.Done()
 	}
 }
