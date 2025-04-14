@@ -20,6 +20,7 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 		}
 		// добавляем счетчик для graceful shutdown
 		hd.Wg.Add(1)
+		defer hd.Wg.Done()
 
 		var err error
 		// получаем индентификатор из URL запроса
@@ -35,7 +36,6 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		hd.Wg.Done()
 		// добавляем оригинальный URL в заголовок location.
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)

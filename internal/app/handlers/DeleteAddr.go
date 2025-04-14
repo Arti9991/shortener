@@ -23,7 +23,6 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 
 		// добавляем счетчик для graceful shutdown
 		hd.Wg.Add(1)
-
 		// получение из контекста UserID и информации о регистрации.
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
@@ -31,6 +30,7 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 		// если пользователь не существует, устанавливается соответствующий статус.
 		if !IsExist {
 			res.WriteHeader(http.StatusUnauthorized)
+			hd.Wg.Done()
 			return
 		}
 		// чтение тела запроса с URL подлежащими удалению.
@@ -38,6 +38,7 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 		if err != nil {
 			logger.Log.Info("Bad request body", zap.Error(err))
 			res.WriteHeader(http.StatusBadRequest)
+			hd.Wg.Done()
 			return
 		}
 		// функция для запуска горутины и отправки структуры в канал.

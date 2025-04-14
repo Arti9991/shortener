@@ -22,6 +22,7 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 
 		// добавляем счетчик для graceful shutdown
 		hd.Wg.Add(1)
+		defer hd.Wg.Done()
 
 		var err error
 		// получение из контекста UserID и информации о регистрации.
@@ -50,7 +51,7 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		hd.Wg.Done()
+
 		res.Header().Set("content-type", "application/json")
 		res.WriteHeader(http.StatusOK)
 		res.Write(out)

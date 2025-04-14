@@ -23,6 +23,7 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 
 		// добавляем счетчик для graceful shutdown
 		hd.Wg.Add(1)
+		defer hd.Wg.Done()
 
 		body, err := io.ReadAll(req.Body)
 		if err != nil || string(body) == "" {
@@ -66,7 +67,6 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 
 		ansStr := hd.BaseAdr + "/" + hashStr
 
-		hd.Wg.Done()
 		res.Header().Set("content-type", "text/plain")
 		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(ansStr))
