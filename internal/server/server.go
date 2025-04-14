@@ -103,6 +103,7 @@ func RunServer() error {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}
 
+	// запуск функции ожидающей сигнала о завершении
 	RunWaitShutDown(serv.hd, &srv)
 
 	// запуск горутины (описана в initStor.go).

@@ -122,6 +122,7 @@ func RunDeleteStor(hd *handlers.HandlersData) {
 	}()
 }
 
+// RunWaitShutDown функция для ожидания сигнала о завершении работы сервера
 func RunWaitShutDown(hd *handlers.HandlersData, server *http.Server) {
 	go func() {
 		<-hd.Ctx.Done()
