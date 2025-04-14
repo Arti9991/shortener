@@ -34,8 +34,8 @@ func NewServerTest() *Server {
 		panic(err)
 	}
 	ctx := context.Background()
-	var wg *sync.WaitGroup
-	Serv.StorInit(ctx, wg)
+	var wg sync.WaitGroup
+	Serv.StorInit(ctx, &wg)
 
 	return &Serv
 }
