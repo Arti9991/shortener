@@ -18,9 +18,6 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		// добавляем счетчик для graceful shutdown
-		hd.Wg.Add(1)
-		defer hd.Wg.Done()
 
 		var err error
 		// получаем индентификатор из URL запроса

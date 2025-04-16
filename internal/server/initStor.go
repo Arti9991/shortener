@@ -103,19 +103,13 @@ func (s *Server) FileRead(d *files.FileData) error {
 
 // RunDeleteStor функция с горутиной, получающей URL для удаления
 // из канала и отправки запроса в БД.
-func RunDeleteStor(hd *handlers.HandlersData) {
+func RunDeleteStor(hd *handlers.HandlersData, WgStor *sync.WaitGroup) {
 	go func() {
-		for {
-			select {
-			case DelStruct := <-hd.OutDelCh:
-				err := hd.Dt.Delete(DelStruct.ShortURL, DelStruct.UserID)
-				if err != nil {
-					logger.Log.Info("Error in deleting in DB", zap.Error(err))
-					continue
-				}
-			case <-hd.Ctx.Done():
-				return
-			default:
+		defer WgStor.Done()
+		for DelStruct := range hd.OutDelCh {
+			err := hd.Dt.Delete(DelStruct.ShortURL, DelStruct.UserID)
+			if err != nil {
+				logger.Log.Info("Error in deleting in DB", zap.Error(err))
 				continue
 			}
 		}
@@ -123,15 +117,16 @@ func RunDeleteStor(hd *handlers.HandlersData) {
 }
 
 // RunWaitShutDown функция для ожидания сигнала о завершении работы сервера
-func RunWaitShutDown(hd *handlers.HandlersData, server *http.Server) {
+func RunWaitShutDown(hd *handlers.HandlersData, server *http.Server, shutCh chan struct{}) {
 	go func() {
 		<-hd.Ctx.Done()
 		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
 		logger.Log.Info("Graceful shutdown...")
 		if err := server.Shutdown(context.Background()); err != nil {
 			// ошибки закрытия Listener
-			logger.Log.Info("Error in HTTP server Shutdown: %v", zap.Error(err))
+			logger.Log.Info("Error in HTTP server Shutdown", zap.Error(err))
 		}
-		hd.Wg.Wait()
+		// сообщение о Shutdown
+		close(shutCh)
 	}()
 }

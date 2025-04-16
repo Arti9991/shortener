@@ -26,10 +26,6 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
-		// добавляем счетчик для graceful shutdown
-		hd.Wg.Add(1)
-		defer hd.Wg.Done()
-
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
 

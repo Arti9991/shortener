@@ -20,10 +20,6 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
-		// добавляем счетчик для graceful shutdown
-		hd.Wg.Add(1)
-		defer hd.Wg.Done()
-
 		var err error
 		// получение из контекста UserID и информации о регистрации.
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)

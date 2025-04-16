@@ -13,4 +13,5 @@ type StorFunc interface {
 	SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error)
 	Delete(keys []string, UserID string) error
 	Ping() error
+	CloseDB() error
 }

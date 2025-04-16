@@ -7,9 +7,8 @@ package mocks
 import (
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
-
 	models "github.com/Arti9991/shortener/internal/models"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockStorFunc is a mock of StorFunc interface.
@@ -33,6 +32,20 @@ func NewMockStorFunc(ctrl *gomock.Controller) *MockStorFunc {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockStorFunc) EXPECT() *MockStorFuncMockRecorder {
 	return m.recorder
+}
+
+// CloseDB mocks base method.
+func (m *MockStorFunc) CloseDB() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CloseDB")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CloseDB indicates an expected call of CloseDB.
+func (mr *MockStorFuncMockRecorder) CloseDB() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseDB", reflect.TypeOf((*MockStorFunc)(nil).CloseDB))
 }
 
 // Delete mocks base method.

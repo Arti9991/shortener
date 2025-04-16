@@ -21,10 +21,6 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			return
 		}
 
-		// добавляем счетчик для graceful shutdown
-		hd.Wg.Add(1)
-		defer hd.Wg.Done()
-
 		body, err := io.ReadAll(req.Body)
 		if err != nil || string(body) == "" {
 			logger.Log.Info("Bad request body", zap.String("body", string(body)))

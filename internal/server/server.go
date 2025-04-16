@@ -49,9 +49,11 @@ func NewServer(ctx context.Context) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	var wg sync.WaitGroup
+	// wait group для ожидания завершения горутин
+	// у хэндлеров
+	var wgWgHandler sync.WaitGroup
 	// инциализация хранилища с нужным интерфейсом
-	Serv.StorInit(ctx, &wg)
+	Serv.StorInit(ctx, &wgWgHandler)
 
 	return &Serv, nil
 }
@@ -78,6 +80,11 @@ func (s *Server) MainRouter() chi.Router {
 
 // RunServer запускает сервер со всеми полученными параметрами.
 func RunServer() error {
+	// канал для сообщения о Shutdown
+	shutCh := make(chan struct{})
+	// Wait Group для ожидания завершения горутины удаления
+	var WgStor sync.WaitGroup
+	// контекст для ожидания системного сигнала на завершение работы
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -85,7 +92,6 @@ func RunServer() error {
 	if err != nil {
 		return err
 	}
-	defer close(serv.hd.OutDelCh)
 
 	srv := http.Server{
 		Handler: serv.MainRouter(),
@@ -103,11 +109,13 @@ func RunServer() error {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}
 
-	// запуск функции ожидающей сигнала о завершении
-	RunWaitShutDown(serv.hd, &srv)
-
+	WgStor.Add(1)
 	// запуск горутины (описана в initStor.go).
-	RunDeleteStor(serv.hd)
+	RunDeleteStor(serv.hd, &WgStor)
+
+	// запуск функции ожидающей сигнала о завершении
+	// (описана в initStor.go).
+	RunWaitShutDown(serv.hd, &srv, shutCh)
 
 	// запуск сервера.
 	if serv.Config.EnableHTTPS {
@@ -123,7 +131,19 @@ func RunServer() error {
 			return err
 		}
 	}
+	// ожидание сообщения о Shutdown
+	<-shutCh
+	// ожидания закрытия горутины у хэндлера
 	serv.hd.Wg.Wait()
+	// закрытие канала отправки URL под удаление
+	close(serv.hd.OutDelCh)
+	// ожидание остановки горутины с функцией удаления
+	WgStor.Wait()
+	// закртытие соединения с базой данных
+	err = serv.hd.Dt.CloseDB()
+	if err != nil {
+		logger.Log.Info("Error in database close", zap.Error(err))
+	}
 	logger.Log.Info("Server shutted down!")
 	return nil
 }
