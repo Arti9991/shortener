@@ -18,6 +18,7 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
 		var err error
 		// получаем индентификатор из URL запроса
 		ident := path.Base(req.URL.String())
@@ -35,6 +36,5 @@ func GetAddr(hd *HandlersData) http.HandlerFunc {
 		// добавляем оригинальный URL в заголовок location.
 		res.Header().Set("Location", redir)
 		res.WriteHeader(http.StatusTemporaryRedirect)
-
 	}
 }

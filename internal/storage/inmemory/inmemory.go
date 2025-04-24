@@ -116,3 +116,9 @@ func (d *Data) ClearStor() {
 		delete(d.ShortUrls, k)
 	}
 }
+
+// CloseDB очищает встроенное хранилище.
+func (d *Data) CloseDB() error {
+	d.ClearStor()
+	return nil
+}

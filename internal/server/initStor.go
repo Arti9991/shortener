@@ -2,10 +2,13 @@ package server
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"io"
+	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
@@ -19,10 +22,9 @@ import (
 )
 
 // StorInit функция инциализации хранилища с выбором режима хранения (в базе или в памяти).
-func (s *Server) StorInit() {
+func (s *Server) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup) {
 	var err1 error
 	var err2 error
-
 	// иницализация канала для удаленных URL.
 	DeleteOutCh := make(chan models.DeleteURL)
 	// инциализация хранилища в базе данных
@@ -35,7 +37,7 @@ func (s *Server) StorInit() {
 			logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err2))
 		}
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под базу.
-		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh)
+		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg)
 		return
 	} else {
 		//при инцииализации базы возникла ошибка, работа продолжается с внутренней памятью.
@@ -48,7 +50,7 @@ func (s *Server) StorInit() {
 		// инциализация хранилища в памяти.
 		s.Inmemory = inmemory.NewData()
 		// инциализация хранилища данных для хэндлеров с нужным интерфейсом под память.
-		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh)
+		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg)
 		return
 	}
 }
@@ -101,8 +103,9 @@ func (s *Server) FileRead(d *files.FileData) error {
 
 // RunDeleteStor функция с горутиной, получающей URL для удаления
 // из канала и отправки запроса в БД.
-func RunDeleteStor(hd handlers.HandlersData) {
+func RunDeleteStor(hd *handlers.HandlersData, WgStor *sync.WaitGroup) {
 	go func() {
+		defer WgStor.Done()
 		for DelStruct := range hd.OutDelCh {
 			err := hd.Dt.Delete(DelStruct.ShortURL, DelStruct.UserID)
 			if err != nil {
@@ -110,5 +113,20 @@ func RunDeleteStor(hd handlers.HandlersData) {
 				continue
 			}
 		}
+	}()
+}
+
+// RunWaitShutDown функция для ожидания сигнала о завершении работы сервера
+func RunWaitShutDown(hd *handlers.HandlersData, server *http.Server, shutCh chan struct{}) {
+	go func() {
+		<-hd.Ctx.Done()
+		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
+		logger.Log.Info("Graceful shutdown...")
+		if err := server.Shutdown(context.Background()); err != nil {
+			// ошибки закрытия Listener
+			logger.Log.Info("Error in HTTP server Shutdown", zap.Error(err))
+		}
+		// сообщение о Shutdown
+		close(shutCh)
 	}()
 }

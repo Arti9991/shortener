@@ -3,7 +3,12 @@
 package server
 
 import (
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	_ "net/http/pprof" // подключаем пакет pprof
@@ -33,7 +38,7 @@ type Server struct {
 }
 
 // NewServer инциализирует все необходимые струткуры.
-func NewServer() (*Server, error) {
+func NewServer(ctx context.Context) (*Server, error) {
 	// установка сида для случайных чисел
 	rand.Seed(uint64(time.Now().UnixNano()))
 	var Serv Server
@@ -44,8 +49,11 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	// wait group для ожидания завершения горутин
+	// у хэндлеров
+	var wgWgHandler sync.WaitGroup
 	// инциализация хранилища с нужным интерфейсом
-	Serv.StorInit()
+	Serv.StorInit(ctx, &wgWgHandler)
 
 	return &Serv, nil
 }
@@ -72,11 +80,23 @@ func (s *Server) MainRouter() chi.Router {
 
 // RunServer запускает сервер со всеми полученными параметрами.
 func RunServer() error {
-	serv, err := NewServer()
+	// канал для сообщения о Shutdown
+	shutCh := make(chan struct{})
+	// Wait Group для ожидания завершения горутины удаления
+	var WgStor sync.WaitGroup
+	// контекст для ожидания системного сигнала на завершение работы
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	serv, err := NewServer(ctx)
 	if err != nil {
 		return err
 	}
-	defer close(serv.hd.OutDelCh)
+
+	srv := http.Server{
+		Handler: serv.MainRouter(),
+		Addr:    serv.Config.HostAdr,
+	}
 
 	logger.Log.Info("New server initialyzed!",
 		zap.String("Server addres:", serv.Config.HostAdr),
@@ -89,11 +109,41 @@ func RunServer() error {
 		logger.Log.Info("Error in reading file!", zap.Error(err))
 	}
 
+	WgStor.Add(1)
 	// запуск горутины (описана в initStor.go).
-	RunDeleteStor(*serv.hd)
+	RunDeleteStor(serv.hd, &WgStor)
+
+	// запуск функции ожидающей сигнала о завершении
+	// (описана в initStor.go).
+	RunWaitShutDown(serv.hd, &srv, shutCh)
 
 	// запуск сервера.
-	err = http.ListenAndServe(serv.Config.HostAdr, serv.MainRouter())
-
-	return err
+	if serv.Config.EnableHTTPS {
+		err = srv.ListenAndServeTLS("server.crt", "server.key")
+		if err != nil && err != http.ErrServerClosed {
+			logger.Log.Info("Error in ListenAndServeTLS", zap.Error(err))
+			return err
+		}
+	} else {
+		err = srv.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			logger.Log.Info("Error in ListenAndServe", zap.Error(err))
+			return err
+		}
+	}
+	// ожидание сообщения о Shutdown
+	<-shutCh
+	// ожидания закрытия горутины у хэндлера
+	serv.hd.Wg.Wait()
+	// закрытие канала отправки URL под удаление
+	close(serv.hd.OutDelCh)
+	// ожидание остановки горутины с функцией удаления
+	WgStor.Wait()
+	// закртытие соединения с базой данных
+	err = serv.hd.Dt.CloseDB()
+	if err != nil {
+		logger.Log.Info("Error in database close", zap.Error(err))
+	}
+	logger.Log.Info("Server shutted down!")
+	return nil
 }

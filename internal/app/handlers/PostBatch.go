@@ -69,6 +69,7 @@ func PostBatch(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
 		res.Header().Set("content-type", "application/json")
 		res.WriteHeader(http.StatusCreated)
 		res.Write(out)

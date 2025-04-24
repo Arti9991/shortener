@@ -205,6 +205,7 @@ func (db *DBStor) Delete(keys []string, UserID string) error {
 	}
 
 	var err error
+	// в данном случае используется batch update для массива keys
 	_, err = db.DB.Exec(QuerryDeleteURL, UserID, keys)
 	if err != nil {
 		db.InFiles = true
@@ -233,8 +234,14 @@ func (db *DBStor) Ping() error {
 	return nil
 }
 
-// проверка возвращаемрй ошибки на ошибку уникальности.
+// CodeIsUniqueViolation проверка возвращаемой ошибки
+// на ошибку уникальности.
 func (db *DBStor) CodeIsUniqueViolation(err error) bool {
 	strErr := err.Error()
 	return strings.Contains(strErr, pgerrcode.UniqueViolation)
+}
+
+// CloseDB закрытие соединения с базой данных
+func (db *DBStor) CloseDB() error {
+	return db.DB.Close()
 }

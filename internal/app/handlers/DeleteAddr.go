@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"sync"
 
 	"go.uber.org/zap"
 
@@ -36,8 +37,11 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
+		// добавляем счетчик для graceful shutdown
+		hd.Wg.Add(1)
 		// функция для запуска горутины и отправки структуры в канал.
-		ThreadDecode(body, UserID, hd.OutDelCh)
+		ThreadDecode(hd.Wg, body, UserID, hd.OutDelCh)
 
 		res.WriteHeader(http.StatusAccepted)
 	}
@@ -45,9 +49,10 @@ func DeleteAddr(hd *HandlersData) http.HandlerFunc {
 
 // ThreadDecode функция с горутиной, считывающей данные из тела запроса,
 // декдоированием из JSON и отправки данных в канал для проставки флага.
-func ThreadDecode(body []byte, UserID string, outCh chan models.DeleteURL) {
+func ThreadDecode(wg *sync.WaitGroup, body []byte, UserID string, outCh chan models.DeleteURL) {
 
 	go func() {
+		defer wg.Done()
 		var InURLs models.DeleteURL
 		// декодирование тела запроса.
 		err := json.Unmarshal(body, &InURLs.ShortURL)

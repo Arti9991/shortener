@@ -106,3 +106,18 @@ curl -v -X DELETE -H "Content-Type: application/json" --cookie "userID=<cookie>"
 ```
 DATABASE_DSN="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable" ./shortener.exe -a :8082
 ```
+
+Для запуска в режиме https:
+
+1) Заменить в запросе ссылку с http:// на https://
+2) Добавить флаг ``` --cacert server.crt ```
+
+Для генерации сертификатов, запустить следующие комманды в папке cmd/shortener:
+1) Закрытый ключ сервера (.key)
+```
+openssl genrsa -out server.key 2048
+```
+2) Публичный ключ сервера (PEM-encodings .pem|.crt) основанный на закрытом ключе (.key) (указать имя localhost) :
+```
+openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
+```

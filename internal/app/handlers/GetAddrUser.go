@@ -19,8 +19,8 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		var err error
 
+		var err error
 		// получение из контекста UserID и информации о регистрации.
 		UserInfo := req.Context().Value(models.CtxKey).(models.UserInfo)
 		UserID := UserInfo.UserID
@@ -40,7 +40,6 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-
 		// кодирование тела ответа
 		out, err := json.Marshal(OutBuff)
 		if err != nil {
@@ -48,6 +47,7 @@ func GetAddrUser(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
 		res.Header().Set("content-type", "application/json")
 		res.WriteHeader(http.StatusOK)
 		res.Write(out)

@@ -20,6 +20,7 @@ func PostAddr(hd *HandlersData) http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
 		body, err := io.ReadAll(req.Body)
 		if err != nil || string(body) == "" {
 			logger.Log.Info("Bad request body", zap.String("body", string(body)))
