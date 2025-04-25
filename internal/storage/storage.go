@@ -12,6 +12,7 @@ type StorFunc interface {
 	GetUser(UserID string, BaseAdr string) (models.UserBuff, error)
 	SaveTx(InURLs models.InBuff, BaseAdr string) (models.OutBuff, error)
 	Delete(keys []string, UserID string) error
+	Stats() (models.URLStats, error)
 	Ping() error
 	CloseDB() error
 }

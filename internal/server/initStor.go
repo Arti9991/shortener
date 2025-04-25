@@ -22,7 +22,7 @@ import (
 )
 
 // StorInit функция инциализации хранилища с выбором режима хранения (в базе или в памяти).
-func (s *Server) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup) {
+func (s *Server) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup, subIP string) {
 	var err1 error
 	var err2 error
 	// иницализация канала для удаленных URL.
@@ -37,7 +37,7 @@ func (s *Server) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup) {
 			logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err2))
 		}
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под базу.
-		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg)
+		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg, subIP)
 		return
 	} else {
 		//при инцииализации базы возникла ошибка, работа продолжается с внутренней памятью.
@@ -50,7 +50,7 @@ func (s *Server) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup) {
 		// инциализация хранилища в памяти.
 		s.Inmemory = inmemory.NewData()
 		// инциализация хранилища данных для хэндлеров с нужным интерфейсом под память.
-		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg)
+		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg, subIP)
 		return
 	}
 }

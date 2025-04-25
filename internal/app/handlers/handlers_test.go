@@ -34,6 +34,7 @@ var UserID = "125"
 var DeleteChan = make(chan models.DeleteURL)
 var ctx = context.Background()
 var wg sync.WaitGroup
+var subIP = ""
 
 func TestPostAddr(t *testing.T) {
 	// создаём контроллер
@@ -48,7 +49,7 @@ func TestPostAddr(t *testing.T) {
 		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(1)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 	type want struct {
 		contentType string
@@ -132,7 +133,7 @@ func TestPostAddrJSON(t *testing.T) {
 		Save(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).
 		MaxTimes(2)
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 	type want struct {
 		contentType string
@@ -267,7 +268,7 @@ func TestGet(t *testing.T) {
 			Return(test.want.answer, test.want.err).
 			MaxTimes(1)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
@@ -290,7 +291,7 @@ func TestGet(t *testing.T) {
 
 func TestMultuplTasks(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 	type want struct {
 		contentType1 string
@@ -417,7 +418,7 @@ func TestMultuplTasks(t *testing.T) {
 
 func TestPostBatch(t *testing.T) {
 	// для сложных запросов используем подменную структуру с хранением данных в памяти
-	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+	hd := NewHandlersData(inmemory.NewData(), BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 	type want struct {
 		contentType string
@@ -617,7 +618,7 @@ func TestGetUser(t *testing.T) {
 			Return(test.want.answer, test.want.err).
 			MaxTimes(5)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, test.request, nil)
@@ -691,7 +692,7 @@ func TestDelete(t *testing.T) {
 			Return(test.want.err).
 			MaxTimes(5)
 
-		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 		t.Run(test.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodDelete, test.request, bytes.NewBuffer([]byte(test.hashes)))
@@ -708,6 +709,133 @@ func TestDelete(t *testing.T) {
 			result := w.Result()
 			assert.Equal(t, test.want.statusCode, result.StatusCode)
 			//assert.Equal(t, test.want.answer, result.Header.Get("Location"))
+
+			err := result.Body.Close()
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestGetStatus(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockStorFunc(ctrl)
+
+	type want struct {
+		err        error
+		statusCode int
+	}
+	tests := []struct {
+		name        string
+		IP          string
+		IPreq       string
+		request     string
+		statsStrcut models.URLStats
+		want        want
+	}{
+		{
+			name:    "Simple request for code 200",
+			IP:      "192.0.2.1/24",
+			IPreq:   "192.0.2.0",
+			request: "/api/internal/stats",
+			statsStrcut: models.URLStats{
+				NumUrls:  25,
+				NumUsers: 6,
+			},
+			want: want{
+				statusCode: 200,
+				err:        nil,
+			},
+		},
+		{
+			name:    "Closed endpoint",
+			IP:      "",
+			IPreq:   "192.0.2.0",
+			request: "/api/internal/stats",
+			statsStrcut: models.URLStats{
+				NumUrls:  0,
+				NumUsers: 0,
+			},
+			want: want{
+				statusCode: 403,
+				err:        nil,
+			},
+		},
+		{
+			name:    "Another subnet",
+			IP:      "192.0.2.1/24",
+			IPreq:   "196.148.2.0",
+			request: "/api/internal/stats",
+			statsStrcut: models.URLStats{
+				NumUrls:  0,
+				NumUsers: 0,
+			},
+			want: want{
+				statusCode: 403,
+				err:        nil,
+			},
+		},
+		{
+			name:    "Bad IP in request",
+			IP:      "192.0.2.1/24",
+			IPreq:   "ABRACADABRA",
+			request: "/api/internal/stats",
+			statsStrcut: models.URLStats{
+				NumUrls:  0,
+				NumUsers: 0,
+			},
+			want: want{
+				statusCode: 403,
+				err:        nil,
+			},
+		},
+		{
+			name:    "Bad IP in trusted",
+			IP:      "ABRACADABRA",
+			IPreq:   "196.148.2.0",
+			request: "/api/internal/stats",
+			statsStrcut: models.URLStats{
+				NumUrls:  0,
+				NumUsers: 0,
+			},
+			want: want{
+				statusCode: 400,
+				err:        nil,
+			},
+		},
+	}
+	for _, test := range tests {
+		// задаем режим рабоыт моков (для GET проверяем полученные файлы)
+		m.EXPECT().
+			Stats().
+			Return(test.statsStrcut, test.want.err).
+			MaxTimes(1)
+
+		hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, test.IP)
+
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, test.request, nil)
+
+			ctx := context.WithValue(request.Context(), models.CtxKey, models.UserInfo{UserID: UserID})
+			request = request.WithContext(ctx)
+			// задаем заголовок запроса с IP
+			request.Header.Add("X-Real-IP", test.IPreq)
+
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(GetStats(hd))
+			h(w, request)
+			result := w.Result()
+			require.Equal(t, test.want.statusCode, result.StatusCode)
+			if result.StatusCode == 200 {
+				var OutBuff models.URLStats
+				err := json.NewDecoder(result.Body).Decode(&OutBuff)
+				require.NoError(t, err)
+
+				assert.Equal(t, test.statsStrcut, OutBuff)
+			}
 
 			err := result.Body.Close()
 			require.NoError(t, err)
@@ -747,7 +875,7 @@ func BenchmarkHandlers(b *testing.B) {
 	// 	Return(nil, nil).
 	// 	MinTimes(1)
 
-	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg)
+	hd := NewHandlersData(m, BaseAdr, files.FilesTest(), DeleteChan, ctx, &wg, subIP)
 
 	// создаём объект-заглушку для GET
 	//mG := mocks.NewMockStorFunc(ctrl)
