@@ -22,6 +22,7 @@ type Config struct {
 	DBAddress   string `env:"DATABASE_DSN"  json:"database_dsn"`           // данные для подключения к базе
 	EnableHTTPS bool   `env:"ENABLE_HTTPS"  json:"enable_https"`           // флаг работы через HTTPS или через HTTP
 	ConfigAddr  string `env:"CONFIG" json:"config"`                        // флаг для конфигурации из файла
+	TrustedNet  string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`        // флаг для передачи значений доверенной подсети
 }
 
 // InitConf инициализация конфигурации для чтения флагов и переменных окружения.
@@ -35,6 +36,7 @@ func InitConf() Config {
 	flag.StringVar(&conf.DBAddress, "d", "", "database address") //"host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
 	flag.BoolVar(&conf.EnableHTTPS, "s", false, "Secure or not")
 	flag.StringVar(&conf.ConfigAddr, "c", conf.ConfigAddr, "JSON config file")
+	flag.StringVar(&conf.TrustedNet, "t", "", "trusted subnet ip")
 	flag.Parse()
 
 	err := env.Parse(&conf)
@@ -104,6 +106,10 @@ func SaveConfig(JSONConfig *Config, BaseConfig *Config) Config {
 	if !BaseConfig.EnableHTTPS {
 		BaseConfig.EnableHTTPS = JSONConfig.EnableHTTPS
 	}
+	if BaseConfig.TrustedNet == "" {
+		BaseConfig.TrustedNet = JSONConfig.TrustedNet
+	}
+
 	return *BaseConfig
 }
 
@@ -118,6 +124,7 @@ func CreateJSON(cfgFilePath string) {
 	config.DBAddress = "host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
 	config.EnableHTTPS = false
 	config.ConfigAddr = cfgFilePath
+	config.TrustedNet = "  "
 
 	file, err := os.OpenFile(cfgFilePath, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {

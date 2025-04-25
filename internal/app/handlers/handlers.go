@@ -17,6 +17,7 @@ type HandlersData struct {
 	BaseAdr  string
 	Ctx      context.Context
 	Wg       *sync.WaitGroup
+	SubIP    string
 }
 
 // NewHandlersData инциализация структуры с параметрами хэндлеров.
@@ -24,6 +25,7 @@ func NewHandlersData(stor storage.StorFunc,
 	base string, files *files.FileData,
 	OutDelCh chan models.DeleteURL,
 	ctx context.Context,
-	wg *sync.WaitGroup) *HandlersData {
-	return &HandlersData{Dt: stor, BaseAdr: base, Files: files, OutDelCh: OutDelCh, Ctx: ctx, Wg: wg}
+	wg *sync.WaitGroup,
+	subIP string) *HandlersData {
+	return &HandlersData{Dt: stor, BaseAdr: base, Files: files, OutDelCh: OutDelCh, Ctx: ctx, Wg: wg, SubIP: subIP}
 }

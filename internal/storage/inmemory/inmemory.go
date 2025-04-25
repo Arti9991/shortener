@@ -122,3 +122,13 @@ func (d *Data) CloseDB() error {
 	d.ClearStor()
 	return nil
 }
+
+// Stats функция для получения количества сохраненых
+// URL в памяти и количества пользователей
+func (d *Data) Stats() (models.URLStats, error) {
+
+	var stats models.URLStats
+	stats.NumUrls = len(d.ShortUrls)
+	stats.NumUsers = len(d.UserKeys)
+	return stats, nil
+}

@@ -53,7 +53,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 	// у хэндлеров
 	var wgWgHandler sync.WaitGroup
 	// инциализация хранилища с нужным интерфейсом
-	Serv.StorInit(ctx, &wgWgHandler)
+	Serv.StorInit(ctx, &wgWgHandler, Serv.Config.TrustedNet)
 
 	return &Serv, nil
 }
@@ -74,6 +74,7 @@ func (s *Server) MainRouter() chi.Router {
 	rt.Post("/api/shorten/batch", handlers.PostBatch(s.hd))
 	rt.Get("/api/user/urls", handlers.GetAddrUser(s.hd))
 	rt.Delete("/api/user/urls", handlers.DeleteAddr(s.hd))
+	rt.Get("/api/internal/stats", handlers.GetStats(s.hd))
 
 	return rt
 }
