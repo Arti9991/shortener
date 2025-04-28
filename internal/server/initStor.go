@@ -37,7 +37,7 @@ func (s *Server) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup, subIP
 			logger.Log.Info("Error in creating or file! Setting file or inmemory mode!", zap.Error(err2))
 		}
 		//инциализируем хранилище данных для хэндлеров с нужным интерфейсом под базу.
-		s.hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg, subIP)
+		s.Hd = handlers.NewHandlersData(s.DataBase, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg, subIP)
 		return
 	} else {
 		//при инцииализации базы возникла ошибка, работа продолжается с внутренней памятью.
@@ -50,7 +50,7 @@ func (s *Server) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup, subIP
 		// инциализация хранилища в памяти.
 		s.Inmemory = inmemory.NewData()
 		// инциализация хранилища данных для хэндлеров с нужным интерфейсом под память.
-		s.hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg, subIP)
+		s.Hd = handlers.NewHandlersData(s.Inmemory, s.Config.BaseAdr, s.Files, DeleteOutCh, ShutDownCtx, wg, subIP)
 		return
 	}
 }
@@ -86,7 +86,7 @@ func (s *Server) FileRead(d *files.FileData) error {
 			return err
 		}
 
-		err = s.hd.Dt.Save(fl.Shorturl, fl.Origurl, "1")
+		err = s.Hd.Dt.Save(fl.Shorturl, fl.Origurl, "1")
 		if err != nil {
 			if !strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 				logger.Log.Info("Error in saving data!", zap.Error(err))
@@ -103,11 +103,11 @@ func (s *Server) FileRead(d *files.FileData) error {
 
 // RunDeleteStor функция с горутиной, получающей URL для удаления
 // из канала и отправки запроса в БД.
-func RunDeleteStor(hd *handlers.HandlersData, WgStor *sync.WaitGroup) {
+func RunDeleteStor(Hd *handlers.HandlersData, WgStor *sync.WaitGroup) {
 	go func() {
 		defer WgStor.Done()
-		for DelStruct := range hd.OutDelCh {
-			err := hd.Dt.Delete(DelStruct.ShortURL, DelStruct.UserID)
+		for DelStruct := range Hd.OutDelCh {
+			err := Hd.Dt.Delete(DelStruct.ShortURL, DelStruct.UserID)
 			if err != nil {
 				logger.Log.Info("Error in deleting in DB", zap.Error(err))
 				continue
@@ -117,9 +117,9 @@ func RunDeleteStor(hd *handlers.HandlersData, WgStor *sync.WaitGroup) {
 }
 
 // RunWaitShutDown функция для ожидания сигнала о завершении работы сервера
-func RunWaitShutDown(hd *handlers.HandlersData, server *http.Server, shutCh chan struct{}) {
+func RunWaitShutDown(Hd *handlers.HandlersData, server *http.Server, shutCh chan struct{}) {
 	go func() {
-		<-hd.Ctx.Done()
+		<-Hd.Ctx.Done()
 		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
 		logger.Log.Info("Graceful shutdown...")
 		if err := server.Shutdown(context.Background()); err != nil {

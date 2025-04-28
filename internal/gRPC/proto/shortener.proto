@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package protoServer;
+
+option go_package = "protoServer/proto";
+
+message PostAddrRequset {
+  string addres = 1;  // адрес для сокращения
+  bool isJSON   = 3;  // является ли запрос в формате JSON 
+}
+
+message PostAddrResponse {
+  string addres = 1;  // адрес для сокращения
+  bool isJSON   = 3;  // является ли запрос в формате JSON 
+}
+
+message GetAddrRequset {
+  string shortAddr = 1;  // короткий адрес
+}
+
+message GetAddrResponse {
+  string addres = 1;  // длинный адрес
+}
+
+message GetAddrUserRequset {
+}
+
+message GetAddrUserResponse {
+  string addreses = 1;  // длинный адрес
+}
+
+service Shortener {
+  rpc PostAddr(PostAddrRequset) returns (PostAddrResponse);
+  rpc GetAddr(GetAddrRequset) returns (GetAddrResponse);
+  rpc GetAddrUser(GetAddrUserRequset) returns (GetAddrUserResponse);
+}
