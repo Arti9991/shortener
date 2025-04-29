@@ -3,10 +3,14 @@ package main
 import (
 	// ...
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand/v2"
+	"strconv"
 
 	pb "github.com/Arti9991/shortener/internal/gRPC/proto"
+	"github.com/Arti9991/shortener/internal/models"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,12 +29,15 @@ func main() {
 	c := pb.NewShortenerClient(conn)
 
 	// функция, в которой будем отправлять сообщения
-	TestShortener(c)
-	TestShortenerJSON(c)
+	// BaseTestShortener(c)
+	// TestShortenerJSON(c)
+	// TestShortenerUser(c)
 	TestShortenerUser(c)
+	TestShortenerbatch(c)
+
 }
 
-func TestShortener(c pb.ShortenerClient) {
+func BaseTestShortener(c pb.ShortenerClient) {
 	// набор тестовых данных
 	// for _, user := range users {
 	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
@@ -68,20 +75,6 @@ func TestShortener(c pb.ShortenerClient) {
 	}
 	fmt.Println(resp3.Addreses)
 
-	// if resp.Error != "" {
-	// 	fmt.Println(resp.Error)
-	// }
-	// }
-	// // удаляем одного из пользователей
-	// resp, err := c.DelUser(context.Background(), &pb.DelUserRequest{
-	// 	Email: "serge@example.com",
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// if resp.Error != "" {
-	// 	fmt.Println(resp.Error)
-	// }
 }
 
 func TestShortenerJSON(c pb.ShortenerClient) {
@@ -110,7 +103,7 @@ func TestShortenerJSON(c pb.ShortenerClient) {
 func TestShortenerUser(c pb.ShortenerClient) {
 
 	//md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
-	md := metadata.New(map[string]string{"UserID": "123456"})
+	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 	var header metadata.MD
@@ -122,18 +115,80 @@ func TestShortenerUser(c pb.ShortenerClient) {
 	fmt.Println(resp3.Addreses)
 	UserID := header.Get("UserID")
 	fmt.Println(UserID)
-	// if resp.Error != "" {
-	// 	fmt.Println(resp.Error)
-	// }
-	// }
-	// // удаляем одного из пользователей
-	// resp, err := c.DelUser(context.Background(), &pb.DelUserRequest{
-	// 	Email: "serge@example.com",
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// if resp.Error != "" {
-	// 	fmt.Println(resp.Error)
-	// }
+}
+
+func TestShortenerbatch(c pb.ShortenerClient) {
+	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	var data []byte
+	var URLs models.InBuff
+	n := 4
+
+	for i := 0; i < n; i++ {
+		var Save models.BatchIncomeURL
+		str := "unique_URL_" + strconv.Itoa(i) + "_" + strconv.Itoa(rand.IntN(100000)) + ".com"
+		Save.URL = str
+		Save.CorrID = "ID_" + strconv.Itoa(i)
+		URLs = append(URLs, Save)
+	}
+
+	fmt.Println(URLs)
+
+	data, err := json.Marshal(URLs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// strDt := `[
+	// 	{
+	// 		"correlation_id": "ID1",
+	// 		"original_url": "www.unque1.ru"
+	// 	},
+	// 	{
+	// 		"correlation_id": "ID2",
+	// 		"original_url": "www.unque2.ru"
+	// 	},
+	// 	{
+	// 		"correlation_id": "ID3",
+	// 		"original_url": "www.unque3.ru"
+	// 	},
+	// 	{
+	// 		"correlation_id": "ID4",
+	// 		"original_url": "www.unque4.ru"
+	// 	},
+	// 	{
+	// 		"correlation_id": "ID5",
+	// 		"original_url": "www.unque5.ru"
+	// 	}
+	// ]`
+	// data := []byte(strDt)
+
+	var header metadata.MD
+	// добавляем пользователей
+	resp, err := c.PostBatch(ctx, &pb.PostBatchRequset{
+		Income: data,
+	},
+		grpc.Header(&header))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	//UserID := header.Get("UserID")
+
+	shortAddrsBt := resp.Outcome
+	var shortAddrs models.OutBuff
+	err = json.Unmarshal(shortAddrsBt, &shortAddrs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(shortAddrs)
+	//fmt.Println(shortAddrs)
+	if len(shortAddrs) > 0 {
+		resp2, err := c.GetAddr(ctx, &pb.GetAddrRequset{
+			ShortAddr: shortAddrs[0].ShortURL,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(resp2.Addres)
+	}
 }

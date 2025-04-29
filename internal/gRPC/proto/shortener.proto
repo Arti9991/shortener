@@ -6,12 +6,12 @@ option go_package = "protoServer/proto";
 
 message PostAddrRequset {
   string addres = 1;  // адрес для сокращения
-  bool isJSON   = 3;  // является ли запрос в формате JSON 
+  bool isJSON   = 2;  // является ли запрос в формате JSON 
 }
 
 message PostAddrResponse {
   string addres = 1;  // адрес для сокращения
-  bool isJSON   = 3;  // является ли запрос в формате JSON 
+  bool isJSON   = 2;  // является ли запрос в формате JSON 
 }
 
 message GetAddrRequset {
@@ -29,8 +29,17 @@ message GetAddrUserResponse {
   string addreses = 1;  // длинный адрес
 }
 
+message PostBatchRequset {
+  bytes income = 1;  // адрес для сокращения
+}
+
+message PostBatchResponse {
+  bytes outcome = 1;  // адрес для сокращения
+}
+
 service Shortener {
   rpc PostAddr(PostAddrRequset) returns (PostAddrResponse);
   rpc GetAddr(GetAddrRequset) returns (GetAddrResponse);
   rpc GetAddrUser(GetAddrUserRequset) returns (GetAddrUserResponse);
+  rpc PostBatch(PostBatchRequset) returns (PostBatchResponse);
 }

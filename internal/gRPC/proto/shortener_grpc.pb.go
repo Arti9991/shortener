@@ -22,6 +22,7 @@ const (
 	Shortener_PostAddr_FullMethodName    = "/protoServer.Shortener/PostAddr"
 	Shortener_GetAddr_FullMethodName     = "/protoServer.Shortener/GetAddr"
 	Shortener_GetAddrUser_FullMethodName = "/protoServer.Shortener/GetAddrUser"
+	Shortener_PostBatch_FullMethodName   = "/protoServer.Shortener/PostBatch"
 )
 
 // ShortenerClient is the client API for Shortener service.
@@ -31,6 +32,7 @@ type ShortenerClient interface {
 	PostAddr(ctx context.Context, in *PostAddrRequset, opts ...grpc.CallOption) (*PostAddrResponse, error)
 	GetAddr(ctx context.Context, in *GetAddrRequset, opts ...grpc.CallOption) (*GetAddrResponse, error)
 	GetAddrUser(ctx context.Context, in *GetAddrUserRequset, opts ...grpc.CallOption) (*GetAddrUserResponse, error)
+	PostBatch(ctx context.Context, in *PostBatchRequset, opts ...grpc.CallOption) (*PostBatchResponse, error)
 }
 
 type shortenerClient struct {
@@ -71,6 +73,16 @@ func (c *shortenerClient) GetAddrUser(ctx context.Context, in *GetAddrUserRequse
 	return out, nil
 }
 
+func (c *shortenerClient) PostBatch(ctx context.Context, in *PostBatchRequset, opts ...grpc.CallOption) (*PostBatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PostBatchResponse)
+	err := c.cc.Invoke(ctx, Shortener_PostBatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShortenerServer is the server API for Shortener service.
 // All implementations must embed UnimplementedShortenerServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type ShortenerServer interface {
 	PostAddr(context.Context, *PostAddrRequset) (*PostAddrResponse, error)
 	GetAddr(context.Context, *GetAddrRequset) (*GetAddrResponse, error)
 	GetAddrUser(context.Context, *GetAddrUserRequset) (*GetAddrUserResponse, error)
+	PostBatch(context.Context, *PostBatchRequset) (*PostBatchResponse, error)
 	mustEmbedUnimplementedShortenerServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedShortenerServer) GetAddr(context.Context, *GetAddrRequset) (*
 }
 func (UnimplementedShortenerServer) GetAddrUser(context.Context, *GetAddrUserRequset) (*GetAddrUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAddrUser not implemented")
+}
+func (UnimplementedShortenerServer) PostBatch(context.Context, *PostBatchRequset) (*PostBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostBatch not implemented")
 }
 func (UnimplementedShortenerServer) mustEmbedUnimplementedShortenerServer() {}
 func (UnimplementedShortenerServer) testEmbeddedByValue()                   {}
@@ -172,6 +188,24 @@ func _Shortener_GetAddrUser_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Shortener_PostBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostBatchRequset)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerServer).PostBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Shortener_PostBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerServer).PostBatch(ctx, req.(*PostBatchRequset))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Shortener_ServiceDesc is the grpc.ServiceDesc for Shortener service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var Shortener_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAddrUser",
 			Handler:    _Shortener_GetAddrUser_Handler,
+		},
+		{
+			MethodName: "PostBatch",
+			Handler:    _Shortener_PostBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
