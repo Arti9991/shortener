@@ -6,12 +6,10 @@ option go_package = "protoServer/proto";
 
 message PostAddrRequset {
   string addres = 1;  // адрес для сокращения
-  bool isJSON   = 2;  // является ли запрос в формате JSON 
 }
 
 message PostAddrResponse {
   string addres = 1;  // адрес для сокращения
-  bool isJSON   = 2;  // является ли запрос в формате JSON 
 }
 
 message GetAddrRequset {
@@ -22,19 +20,49 @@ message GetAddrResponse {
   string addres = 1;  // длинный адрес
 }
 
+message UserURLs{
+   string origURL = 1;
+   string shortURL = 2;
+}
 message GetAddrUserRequset {
 }
 
 message GetAddrUserResponse {
-  string addreses = 1;  // длинный адрес
+  repeated UserURLs userURLs = 1;  // длинный адрес
 }
 
+message BatchURL{
+  string corrID = 1;
+  string URL = 2;
+}
 message PostBatchRequset {
-  bytes income = 1;  // адрес для сокращения
+  repeated BatchURL batchURL = 1;  // адреса для сокращения
 }
 
 message PostBatchResponse {
-  bytes outcome = 1;  // адрес для сокращения
+  repeated BatchURL batchURL = 1;  // адрес для сокращения
+}
+
+message PingRequest {
+}
+
+message PingResponse {
+}
+
+message DeleteAddrRequest {
+  repeated string idents = 1;
+
+}
+message DeleteAddrResponse{
+}
+
+message GetStatsRequest{
+
+}
+
+message GetStatsResponse{
+  int64 numURLs = 1;
+  int64 numUsers = 2;
 }
 
 service Shortener {
@@ -42,4 +70,7 @@ service Shortener {
   rpc GetAddr(GetAddrRequset) returns (GetAddrResponse);
   rpc GetAddrUser(GetAddrUserRequset) returns (GetAddrUserResponse);
   rpc PostBatch(PostBatchRequset) returns (PostBatchResponse);
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc DeleteAddr(DeleteAddrRequest) returns(DeleteAddrResponse);
+  rpc GetStats(GetStatsRequest) returns(GetStatsResponse);
 }

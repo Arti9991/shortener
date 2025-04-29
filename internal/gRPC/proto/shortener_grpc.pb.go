@@ -23,6 +23,9 @@ const (
 	Shortener_GetAddr_FullMethodName     = "/protoServer.Shortener/GetAddr"
 	Shortener_GetAddrUser_FullMethodName = "/protoServer.Shortener/GetAddrUser"
 	Shortener_PostBatch_FullMethodName   = "/protoServer.Shortener/PostBatch"
+	Shortener_Ping_FullMethodName        = "/protoServer.Shortener/Ping"
+	Shortener_DeleteAddr_FullMethodName  = "/protoServer.Shortener/DeleteAddr"
+	Shortener_GetStats_FullMethodName    = "/protoServer.Shortener/GetStats"
 )
 
 // ShortenerClient is the client API for Shortener service.
@@ -33,6 +36,9 @@ type ShortenerClient interface {
 	GetAddr(ctx context.Context, in *GetAddrRequset, opts ...grpc.CallOption) (*GetAddrResponse, error)
 	GetAddrUser(ctx context.Context, in *GetAddrUserRequset, opts ...grpc.CallOption) (*GetAddrUserResponse, error)
 	PostBatch(ctx context.Context, in *PostBatchRequset, opts ...grpc.CallOption) (*PostBatchResponse, error)
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	DeleteAddr(ctx context.Context, in *DeleteAddrRequest, opts ...grpc.CallOption) (*DeleteAddrResponse, error)
+	GetStats(ctx context.Context, in *GetStatsRequest, opts ...grpc.CallOption) (*GetStatsResponse, error)
 }
 
 type shortenerClient struct {
@@ -83,6 +89,36 @@ func (c *shortenerClient) PostBatch(ctx context.Context, in *PostBatchRequset, o
 	return out, nil
 }
 
+func (c *shortenerClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PingResponse)
+	err := c.cc.Invoke(ctx, Shortener_Ping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortenerClient) DeleteAddr(ctx context.Context, in *DeleteAddrRequest, opts ...grpc.CallOption) (*DeleteAddrResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAddrResponse)
+	err := c.cc.Invoke(ctx, Shortener_DeleteAddr_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortenerClient) GetStats(ctx context.Context, in *GetStatsRequest, opts ...grpc.CallOption) (*GetStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStatsResponse)
+	err := c.cc.Invoke(ctx, Shortener_GetStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShortenerServer is the server API for Shortener service.
 // All implementations must embed UnimplementedShortenerServer
 // for forward compatibility.
@@ -91,6 +127,9 @@ type ShortenerServer interface {
 	GetAddr(context.Context, *GetAddrRequset) (*GetAddrResponse, error)
 	GetAddrUser(context.Context, *GetAddrUserRequset) (*GetAddrUserResponse, error)
 	PostBatch(context.Context, *PostBatchRequset) (*PostBatchResponse, error)
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	DeleteAddr(context.Context, *DeleteAddrRequest) (*DeleteAddrResponse, error)
+	GetStats(context.Context, *GetStatsRequest) (*GetStatsResponse, error)
 	mustEmbedUnimplementedShortenerServer()
 }
 
@@ -112,6 +151,15 @@ func (UnimplementedShortenerServer) GetAddrUser(context.Context, *GetAddrUserReq
 }
 func (UnimplementedShortenerServer) PostBatch(context.Context, *PostBatchRequset) (*PostBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostBatch not implemented")
+}
+func (UnimplementedShortenerServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedShortenerServer) DeleteAddr(context.Context, *DeleteAddrRequest) (*DeleteAddrResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAddr not implemented")
+}
+func (UnimplementedShortenerServer) GetStats(context.Context, *GetStatsRequest) (*GetStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStats not implemented")
 }
 func (UnimplementedShortenerServer) mustEmbedUnimplementedShortenerServer() {}
 func (UnimplementedShortenerServer) testEmbeddedByValue()                   {}
@@ -206,6 +254,60 @@ func _Shortener_PostBatch_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Shortener_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Shortener_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Shortener_DeleteAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAddrRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerServer).DeleteAddr(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Shortener_DeleteAddr_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerServer).DeleteAddr(ctx, req.(*DeleteAddrRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Shortener_GetStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerServer).GetStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Shortener_GetStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerServer).GetStats(ctx, req.(*GetStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Shortener_ServiceDesc is the grpc.ServiceDesc for Shortener service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +330,18 @@ var Shortener_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PostBatch",
 			Handler:    _Shortener_PostBatch_Handler,
+		},
+		{
+			MethodName: "Ping",
+			Handler:    _Shortener_Ping_Handler,
+		},
+		{
+			MethodName: "DeleteAddr",
+			Handler:    _Shortener_DeleteAddr_Handler,
+		},
+		{
+			MethodName: "GetStats",
+			Handler:    _Shortener_GetStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

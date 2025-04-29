@@ -23,8 +23,7 @@ const (
 
 type PostAddrRequset struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Addres        string                 `protobuf:"bytes,1,opt,name=addres,proto3" json:"addres,omitempty"`  // адрес для сокращения
-	IsJSON        bool                   `protobuf:"varint,2,opt,name=isJSON,proto3" json:"isJSON,omitempty"` // является ли запрос в формате JSON
+	Addres        string                 `protobuf:"bytes,1,opt,name=addres,proto3" json:"addres,omitempty"` // адрес для сокращения
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -66,17 +65,9 @@ func (x *PostAddrRequset) GetAddres() string {
 	return ""
 }
 
-func (x *PostAddrRequset) GetIsJSON() bool {
-	if x != nil {
-		return x.IsJSON
-	}
-	return false
-}
-
 type PostAddrResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Addres        string                 `protobuf:"bytes,1,opt,name=addres,proto3" json:"addres,omitempty"`  // адрес для сокращения
-	IsJSON        bool                   `protobuf:"varint,2,opt,name=isJSON,proto3" json:"isJSON,omitempty"` // является ли запрос в формате JSON
+	Addres        string                 `protobuf:"bytes,1,opt,name=addres,proto3" json:"addres,omitempty"` // адрес для сокращения
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -116,13 +107,6 @@ func (x *PostAddrResponse) GetAddres() string {
 		return x.Addres
 	}
 	return ""
-}
-
-func (x *PostAddrResponse) GetIsJSON() bool {
-	if x != nil {
-		return x.IsJSON
-	}
-	return false
 }
 
 type GetAddrRequset struct {
@@ -213,6 +197,58 @@ func (x *GetAddrResponse) GetAddres() string {
 	return ""
 }
 
+type UserURLs struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrigURL       string                 `protobuf:"bytes,1,opt,name=origURL,proto3" json:"origURL,omitempty"`
+	ShortURL      string                 `protobuf:"bytes,2,opt,name=shortURL,proto3" json:"shortURL,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserURLs) Reset() {
+	*x = UserURLs{}
+	mi := &file_proto_shortener_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserURLs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserURLs) ProtoMessage() {}
+
+func (x *UserURLs) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserURLs.ProtoReflect.Descriptor instead.
+func (*UserURLs) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UserURLs) GetOrigURL() string {
+	if x != nil {
+		return x.OrigURL
+	}
+	return ""
+}
+
+func (x *UserURLs) GetShortURL() string {
+	if x != nil {
+		return x.ShortURL
+	}
+	return ""
+}
+
 type GetAddrUserRequset struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -221,7 +257,7 @@ type GetAddrUserRequset struct {
 
 func (x *GetAddrUserRequset) Reset() {
 	*x = GetAddrUserRequset{}
-	mi := &file_proto_shortener_proto_msgTypes[4]
+	mi := &file_proto_shortener_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -233,7 +269,7 @@ func (x *GetAddrUserRequset) String() string {
 func (*GetAddrUserRequset) ProtoMessage() {}
 
 func (x *GetAddrUserRequset) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_shortener_proto_msgTypes[4]
+	mi := &file_proto_shortener_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -246,19 +282,19 @@ func (x *GetAddrUserRequset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAddrUserRequset.ProtoReflect.Descriptor instead.
 func (*GetAddrUserRequset) Descriptor() ([]byte, []int) {
-	return file_proto_shortener_proto_rawDescGZIP(), []int{4}
+	return file_proto_shortener_proto_rawDescGZIP(), []int{5}
 }
 
 type GetAddrUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Addreses      string                 `protobuf:"bytes,1,opt,name=addreses,proto3" json:"addreses,omitempty"` // длинный адрес
+	UserURLs      []*UserURLs            `protobuf:"bytes,1,rep,name=userURLs,proto3" json:"userURLs,omitempty"` // длинный адрес
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetAddrUserResponse) Reset() {
 	*x = GetAddrUserResponse{}
-	mi := &file_proto_shortener_proto_msgTypes[5]
+	mi := &file_proto_shortener_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +306,7 @@ func (x *GetAddrUserResponse) String() string {
 func (*GetAddrUserResponse) ProtoMessage() {}
 
 func (x *GetAddrUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_shortener_proto_msgTypes[5]
+	mi := &file_proto_shortener_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,26 +319,78 @@ func (x *GetAddrUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAddrUserResponse.ProtoReflect.Descriptor instead.
 func (*GetAddrUserResponse) Descriptor() ([]byte, []int) {
-	return file_proto_shortener_proto_rawDescGZIP(), []int{5}
+	return file_proto_shortener_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetAddrUserResponse) GetAddreses() string {
+func (x *GetAddrUserResponse) GetUserURLs() []*UserURLs {
 	if x != nil {
-		return x.Addreses
+		return x.UserURLs
+	}
+	return nil
+}
+
+type BatchURL struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CorrID        string                 `protobuf:"bytes,1,opt,name=corrID,proto3" json:"corrID,omitempty"`
+	URL           string                 `protobuf:"bytes,2,opt,name=URL,proto3" json:"URL,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchURL) Reset() {
+	*x = BatchURL{}
+	mi := &file_proto_shortener_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchURL) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchURL) ProtoMessage() {}
+
+func (x *BatchURL) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchURL.ProtoReflect.Descriptor instead.
+func (*BatchURL) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *BatchURL) GetCorrID() string {
+	if x != nil {
+		return x.CorrID
+	}
+	return ""
+}
+
+func (x *BatchURL) GetURL() string {
+	if x != nil {
+		return x.URL
 	}
 	return ""
 }
 
 type PostBatchRequset struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Income        []byte                 `protobuf:"bytes,1,opt,name=income,proto3" json:"income,omitempty"` // адрес для сокращения
+	BatchURL      []*BatchURL            `protobuf:"bytes,1,rep,name=batchURL,proto3" json:"batchURL,omitempty"` // адреса для сокращения
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PostBatchRequset) Reset() {
 	*x = PostBatchRequset{}
-	mi := &file_proto_shortener_proto_msgTypes[6]
+	mi := &file_proto_shortener_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +402,7 @@ func (x *PostBatchRequset) String() string {
 func (*PostBatchRequset) ProtoMessage() {}
 
 func (x *PostBatchRequset) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_shortener_proto_msgTypes[6]
+	mi := &file_proto_shortener_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,26 +415,26 @@ func (x *PostBatchRequset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostBatchRequset.ProtoReflect.Descriptor instead.
 func (*PostBatchRequset) Descriptor() ([]byte, []int) {
-	return file_proto_shortener_proto_rawDescGZIP(), []int{6}
+	return file_proto_shortener_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *PostBatchRequset) GetIncome() []byte {
+func (x *PostBatchRequset) GetBatchURL() []*BatchURL {
 	if x != nil {
-		return x.Income
+		return x.BatchURL
 	}
 	return nil
 }
 
 type PostBatchResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Outcome       []byte                 `protobuf:"bytes,1,opt,name=outcome,proto3" json:"outcome,omitempty"` // адрес для сокращения
+	BatchURL      []*BatchURL            `protobuf:"bytes,1,rep,name=batchURL,proto3" json:"batchURL,omitempty"` // адрес для сокращения
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PostBatchResponse) Reset() {
 	*x = PostBatchResponse{}
-	mi := &file_proto_shortener_proto_msgTypes[7]
+	mi := &file_proto_shortener_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -358,7 +446,7 @@ func (x *PostBatchResponse) String() string {
 func (*PostBatchResponse) ProtoMessage() {}
 
 func (x *PostBatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_shortener_proto_msgTypes[7]
+	mi := &file_proto_shortener_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,43 +459,300 @@ func (x *PostBatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostBatchResponse.ProtoReflect.Descriptor instead.
 func (*PostBatchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_shortener_proto_rawDescGZIP(), []int{7}
+	return file_proto_shortener_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *PostBatchResponse) GetOutcome() []byte {
+func (x *PostBatchResponse) GetBatchURL() []*BatchURL {
 	if x != nil {
-		return x.Outcome
+		return x.BatchURL
 	}
 	return nil
+}
+
+type PingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PingRequest) Reset() {
+	*x = PingRequest{}
+	mi := &file_proto_shortener_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PingRequest) ProtoMessage() {}
+
+func (x *PingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PingRequest.ProtoReflect.Descriptor instead.
+func (*PingRequest) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{10}
+}
+
+type PingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PingResponse) Reset() {
+	*x = PingResponse{}
+	mi := &file_proto_shortener_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PingResponse) ProtoMessage() {}
+
+func (x *PingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PingResponse.ProtoReflect.Descriptor instead.
+func (*PingResponse) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{11}
+}
+
+type DeleteAddrRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Idents        []string               `protobuf:"bytes,1,rep,name=idents,proto3" json:"idents,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAddrRequest) Reset() {
+	*x = DeleteAddrRequest{}
+	mi := &file_proto_shortener_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAddrRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAddrRequest) ProtoMessage() {}
+
+func (x *DeleteAddrRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAddrRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAddrRequest) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteAddrRequest) GetIdents() []string {
+	if x != nil {
+		return x.Idents
+	}
+	return nil
+}
+
+type DeleteAddrResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAddrResponse) Reset() {
+	*x = DeleteAddrResponse{}
+	mi := &file_proto_shortener_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAddrResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAddrResponse) ProtoMessage() {}
+
+func (x *DeleteAddrResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAddrResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAddrResponse) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{13}
+}
+
+type GetStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStatsRequest) Reset() {
+	*x = GetStatsRequest{}
+	mi := &file_proto_shortener_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStatsRequest) ProtoMessage() {}
+
+func (x *GetStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetStatsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{14}
+}
+
+type GetStatsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	NumURLs       int64                  `protobuf:"varint,1,opt,name=numURLs,proto3" json:"numURLs,omitempty"`
+	NumUsers      int64                  `protobuf:"varint,2,opt,name=numUsers,proto3" json:"numUsers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStatsResponse) Reset() {
+	*x = GetStatsResponse{}
+	mi := &file_proto_shortener_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStatsResponse) ProtoMessage() {}
+
+func (x *GetStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_shortener_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetStatsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_shortener_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetStatsResponse) GetNumURLs() int64 {
+	if x != nil {
+		return x.NumURLs
+	}
+	return 0
+}
+
+func (x *GetStatsResponse) GetNumUsers() int64 {
+	if x != nil {
+		return x.NumUsers
+	}
+	return 0
 }
 
 var File_proto_shortener_proto protoreflect.FileDescriptor
 
 const file_proto_shortener_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/shortener.proto\x12\vprotoServer\"A\n" +
+	"\x15proto/shortener.proto\x12\vprotoServer\")\n" +
 	"\x0fPostAddrRequset\x12\x16\n" +
-	"\x06addres\x18\x01 \x01(\tR\x06addres\x12\x16\n" +
-	"\x06isJSON\x18\x02 \x01(\bR\x06isJSON\"B\n" +
+	"\x06addres\x18\x01 \x01(\tR\x06addres\"*\n" +
 	"\x10PostAddrResponse\x12\x16\n" +
-	"\x06addres\x18\x01 \x01(\tR\x06addres\x12\x16\n" +
-	"\x06isJSON\x18\x02 \x01(\bR\x06isJSON\".\n" +
+	"\x06addres\x18\x01 \x01(\tR\x06addres\".\n" +
 	"\x0eGetAddrRequset\x12\x1c\n" +
 	"\tshortAddr\x18\x01 \x01(\tR\tshortAddr\")\n" +
 	"\x0fGetAddrResponse\x12\x16\n" +
-	"\x06addres\x18\x01 \x01(\tR\x06addres\"\x14\n" +
-	"\x12GetAddrUserRequset\"1\n" +
-	"\x13GetAddrUserResponse\x12\x1a\n" +
-	"\baddreses\x18\x01 \x01(\tR\baddreses\"*\n" +
-	"\x10PostBatchRequset\x12\x16\n" +
-	"\x06income\x18\x01 \x01(\fR\x06income\"-\n" +
-	"\x11PostBatchResponse\x12\x18\n" +
-	"\aoutcome\x18\x01 \x01(\fR\aoutcome2\xb8\x02\n" +
+	"\x06addres\x18\x01 \x01(\tR\x06addres\"@\n" +
+	"\bUserURLs\x12\x18\n" +
+	"\aorigURL\x18\x01 \x01(\tR\aorigURL\x12\x1a\n" +
+	"\bshortURL\x18\x02 \x01(\tR\bshortURL\"\x14\n" +
+	"\x12GetAddrUserRequset\"H\n" +
+	"\x13GetAddrUserResponse\x121\n" +
+	"\buserURLs\x18\x01 \x03(\v2\x15.protoServer.UserURLsR\buserURLs\"4\n" +
+	"\bBatchURL\x12\x16\n" +
+	"\x06corrID\x18\x01 \x01(\tR\x06corrID\x12\x10\n" +
+	"\x03URL\x18\x02 \x01(\tR\x03URL\"E\n" +
+	"\x10PostBatchRequset\x121\n" +
+	"\bbatchURL\x18\x01 \x03(\v2\x15.protoServer.BatchURLR\bbatchURL\"F\n" +
+	"\x11PostBatchResponse\x121\n" +
+	"\bbatchURL\x18\x01 \x03(\v2\x15.protoServer.BatchURLR\bbatchURL\"\r\n" +
+	"\vPingRequest\"\x0e\n" +
+	"\fPingResponse\"+\n" +
+	"\x11DeleteAddrRequest\x12\x16\n" +
+	"\x06idents\x18\x01 \x03(\tR\x06idents\"\x14\n" +
+	"\x12DeleteAddrResponse\"\x11\n" +
+	"\x0fGetStatsRequest\"H\n" +
+	"\x10GetStatsResponse\x12\x18\n" +
+	"\anumURLs\x18\x01 \x01(\x03R\anumURLs\x12\x1a\n" +
+	"\bnumUsers\x18\x02 \x01(\x03R\bnumUsers2\x8d\x04\n" +
 	"\tShortener\x12G\n" +
 	"\bPostAddr\x12\x1c.protoServer.PostAddrRequset\x1a\x1d.protoServer.PostAddrResponse\x12D\n" +
 	"\aGetAddr\x12\x1b.protoServer.GetAddrRequset\x1a\x1c.protoServer.GetAddrResponse\x12P\n" +
 	"\vGetAddrUser\x12\x1f.protoServer.GetAddrUserRequset\x1a .protoServer.GetAddrUserResponse\x12J\n" +
-	"\tPostBatch\x12\x1d.protoServer.PostBatchRequset\x1a\x1e.protoServer.PostBatchResponseB\x13Z\x11protoServer/protob\x06proto3"
+	"\tPostBatch\x12\x1d.protoServer.PostBatchRequset\x1a\x1e.protoServer.PostBatchResponse\x12;\n" +
+	"\x04Ping\x12\x18.protoServer.PingRequest\x1a\x19.protoServer.PingResponse\x12M\n" +
+	"\n" +
+	"DeleteAddr\x12\x1e.protoServer.DeleteAddrRequest\x1a\x1f.protoServer.DeleteAddrResponse\x12G\n" +
+	"\bGetStats\x12\x1c.protoServer.GetStatsRequest\x1a\x1d.protoServer.GetStatsResponseB\x13Z\x11protoServer/protob\x06proto3"
 
 var (
 	file_proto_shortener_proto_rawDescOnce sync.Once
@@ -421,31 +766,48 @@ func file_proto_shortener_proto_rawDescGZIP() []byte {
 	return file_proto_shortener_proto_rawDescData
 }
 
-var file_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_proto_shortener_proto_goTypes = []any{
 	(*PostAddrRequset)(nil),     // 0: protoServer.PostAddrRequset
 	(*PostAddrResponse)(nil),    // 1: protoServer.PostAddrResponse
 	(*GetAddrRequset)(nil),      // 2: protoServer.GetAddrRequset
 	(*GetAddrResponse)(nil),     // 3: protoServer.GetAddrResponse
-	(*GetAddrUserRequset)(nil),  // 4: protoServer.GetAddrUserRequset
-	(*GetAddrUserResponse)(nil), // 5: protoServer.GetAddrUserResponse
-	(*PostBatchRequset)(nil),    // 6: protoServer.PostBatchRequset
-	(*PostBatchResponse)(nil),   // 7: protoServer.PostBatchResponse
+	(*UserURLs)(nil),            // 4: protoServer.UserURLs
+	(*GetAddrUserRequset)(nil),  // 5: protoServer.GetAddrUserRequset
+	(*GetAddrUserResponse)(nil), // 6: protoServer.GetAddrUserResponse
+	(*BatchURL)(nil),            // 7: protoServer.BatchURL
+	(*PostBatchRequset)(nil),    // 8: protoServer.PostBatchRequset
+	(*PostBatchResponse)(nil),   // 9: protoServer.PostBatchResponse
+	(*PingRequest)(nil),         // 10: protoServer.PingRequest
+	(*PingResponse)(nil),        // 11: protoServer.PingResponse
+	(*DeleteAddrRequest)(nil),   // 12: protoServer.DeleteAddrRequest
+	(*DeleteAddrResponse)(nil),  // 13: protoServer.DeleteAddrResponse
+	(*GetStatsRequest)(nil),     // 14: protoServer.GetStatsRequest
+	(*GetStatsResponse)(nil),    // 15: protoServer.GetStatsResponse
 }
 var file_proto_shortener_proto_depIdxs = []int32{
-	0, // 0: protoServer.Shortener.PostAddr:input_type -> protoServer.PostAddrRequset
-	2, // 1: protoServer.Shortener.GetAddr:input_type -> protoServer.GetAddrRequset
-	4, // 2: protoServer.Shortener.GetAddrUser:input_type -> protoServer.GetAddrUserRequset
-	6, // 3: protoServer.Shortener.PostBatch:input_type -> protoServer.PostBatchRequset
-	1, // 4: protoServer.Shortener.PostAddr:output_type -> protoServer.PostAddrResponse
-	3, // 5: protoServer.Shortener.GetAddr:output_type -> protoServer.GetAddrResponse
-	5, // 6: protoServer.Shortener.GetAddrUser:output_type -> protoServer.GetAddrUserResponse
-	7, // 7: protoServer.Shortener.PostBatch:output_type -> protoServer.PostBatchResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	4,  // 0: protoServer.GetAddrUserResponse.userURLs:type_name -> protoServer.UserURLs
+	7,  // 1: protoServer.PostBatchRequset.batchURL:type_name -> protoServer.BatchURL
+	7,  // 2: protoServer.PostBatchResponse.batchURL:type_name -> protoServer.BatchURL
+	0,  // 3: protoServer.Shortener.PostAddr:input_type -> protoServer.PostAddrRequset
+	2,  // 4: protoServer.Shortener.GetAddr:input_type -> protoServer.GetAddrRequset
+	5,  // 5: protoServer.Shortener.GetAddrUser:input_type -> protoServer.GetAddrUserRequset
+	8,  // 6: protoServer.Shortener.PostBatch:input_type -> protoServer.PostBatchRequset
+	10, // 7: protoServer.Shortener.Ping:input_type -> protoServer.PingRequest
+	12, // 8: protoServer.Shortener.DeleteAddr:input_type -> protoServer.DeleteAddrRequest
+	14, // 9: protoServer.Shortener.GetStats:input_type -> protoServer.GetStatsRequest
+	1,  // 10: protoServer.Shortener.PostAddr:output_type -> protoServer.PostAddrResponse
+	3,  // 11: protoServer.Shortener.GetAddr:output_type -> protoServer.GetAddrResponse
+	6,  // 12: protoServer.Shortener.GetAddrUser:output_type -> protoServer.GetAddrUserResponse
+	9,  // 13: protoServer.Shortener.PostBatch:output_type -> protoServer.PostBatchResponse
+	11, // 14: protoServer.Shortener.Ping:output_type -> protoServer.PingResponse
+	13, // 15: protoServer.Shortener.DeleteAddr:output_type -> protoServer.DeleteAddrResponse
+	15, // 16: protoServer.Shortener.GetStats:output_type -> protoServer.GetStatsResponse
+	10, // [10:17] is the sub-list for method output_type
+	3,  // [3:10] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_shortener_proto_init() }
@@ -459,7 +821,7 @@ func file_proto_shortener_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_shortener_proto_rawDesc), len(file_proto_shortener_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

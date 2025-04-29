@@ -2,7 +2,6 @@ package protoServer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Arti9991/shortener/internal/app/auth"
 	"github.com/Arti9991/shortener/internal/models"
@@ -21,7 +20,7 @@ func atuhInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServe
 		values := md.Get("UserID")
 		if len(values) > 0 {
 			UserIDhash := values[0]
-			fmt.Println(len(UserIDhash))
+			//fmt.Println(len(UserIDhash))
 			if len(UserIDhash) != 32 {
 				UserExist = false
 				newCtx := context.WithValue(ctx, models.CtxKey, models.UserInfo{Register: UserExist})
@@ -31,7 +30,7 @@ func atuhInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServe
 			if err != nil {
 				UserExist = false
 			}
-			fmt.Println("User ID un interceptor is:", UserID)
+			//fmt.Println("User ID un interceptor is:", UserID)
 		} else if len(values) == 0 {
 			UserExist = false
 		}

@@ -4,7 +4,10 @@ import (
 	"context"
 	"log"
 	"net"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/Arti9991/shortener/internal/app/handlers"
@@ -12,6 +15,7 @@ import (
 	"github.com/Arti9991/shortener/internal/gRPC/proto"
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
+	"github.com/Arti9991/shortener/internal/server"
 	"github.com/Arti9991/shortener/internal/storage/database"
 	"github.com/Arti9991/shortener/internal/storage/files"
 	"github.com/Arti9991/shortener/internal/storage/inmemory"
@@ -89,15 +93,23 @@ func (s *ProtoServer) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup, 
 }
 
 func RunGRPCServer() error {
+	// контекст для ожидания системного сигнала на завершение работы
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	// канал для сообщения о Shutdown
+	shutCh := make(chan struct{})
+	// Wait Group для ожидания завершения горутины удаления
+	var WgStor sync.WaitGroup
+
 	serv, err := InitServer()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// определяем адрес для сервера
 	listen, err := net.Listen("tcp", serv.Config.HostAdr)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	// создаём gRPC-сервер без зарегистрированной службы
 	s := grpc.NewServer(grpc.UnaryInterceptor(atuhInterceptor))
@@ -109,9 +121,45 @@ func RunGRPCServer() error {
 		zap.String("Server addres:", serv.Config.HostAdr),
 		zap.String("Base addres:", serv.Config.BaseAdr),
 	)
+
+	// запуск горутины (описана в initStor.go).
+	WgStor.Add(1)
+	server.RunDeleteStor(serv.Hd, &WgStor)
+
+	// запуск функции ожидающей сигнала о завершении
+	// (описана в initStor.go).
+	RunWaitShutDown(ctx, s, shutCh)
+
 	// получаем запрос gRPC
 	if err := s.Serve(listen); err != nil {
 		log.Fatal(err)
 	}
+
+	// ожидание сообщения о Shutdown
+	<-shutCh
+	// ожидания закрытия горутины у хэндлера
+	serv.Hd.Wg.Wait()
+	// закрытие канала отправки URL под удаление
+	close(serv.Hd.OutDelCh)
+	// ожидание остановки горутины с функцией удаления
+	WgStor.Wait()
+	// закртытие соединения с базой данных
+	err = serv.Hd.Dt.CloseDB()
+	if err != nil {
+		logger.Log.Info("Error in database close", zap.Error(err))
+	}
+	logger.Log.Info("Server shutted down!")
 	return nil
+}
+
+// RunWaitShutDown функция для ожидания сигнала о завершении работы сервера
+func RunWaitShutDown(ctx context.Context, server *grpc.Server, shutCh chan struct{}) {
+	go func() {
+		<-ctx.Done()
+		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
+		logger.Log.Info("Graceful shutdown...")
+		server.GracefulStop()
+		// сообщение о Shutdown
+		close(shutCh)
+	}()
 }

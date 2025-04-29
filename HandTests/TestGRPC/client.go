@@ -3,14 +3,13 @@ package main
 import (
 	// ...
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand/v2"
+	"regexp"
 	"strconv"
 
 	pb "github.com/Arti9991/shortener/internal/gRPC/proto"
-	"github.com/Arti9991/shortener/internal/models"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -29,12 +28,12 @@ func main() {
 	c := pb.NewShortenerClient(conn)
 
 	// функция, в которой будем отправлять сообщения
-	// BaseTestShortener(c)
+	BaseTestShortener(c)
 	// TestShortenerJSON(c)
-	// TestShortenerUser(c)
-	TestShortenerUser(c)
 	TestShortenerbatch(c)
-
+	TestShortenerUser(c)
+	PingTest(c)
+	TestGetStats(c)
 }
 
 func BaseTestShortener(c pb.ShortenerClient) {
@@ -62,9 +61,10 @@ func BaseTestShortener(c pb.ShortenerClient) {
 		ShortAddr: shortAddr,
 	})
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+	} else {
+		fmt.Println(resp2.Addres)
 	}
-	fmt.Println(resp2.Addres)
 
 	// md2 := metadata.New(map[string]string{"UserID": "123123143124"})
 	// ctx2 := metadata.NewOutgoingContext(context.Background(), md2)
@@ -73,37 +73,45 @@ func BaseTestShortener(c pb.ShortenerClient) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(resp3.Addreses)
+	for _, val := range resp3.UserURLs {
+		fmt.Printf("Orig_URL: %s\t Short_URL: %s\n", val.OrigURL, val.ShortURL)
+	}
+	re := regexp.MustCompile(`^.*/`)
+	shortIdent := []string{re.ReplaceAllString(shortAddr, "")}
 
-}
-
-func TestShortenerJSON(c pb.ShortenerClient) {
-	// набор тестовых данных
-	// for _, user := range users {
-	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
-
-	var header metadata.MD
-	// добавляем пользователей
-	resp, err := c.PostAddr(ctx, &pb.PostAddrRequset{
-		Addres: `{"url":"www.Dlya.ru"}`,
-		IsJSON: true,
-	},
-		grpc.Header(&header))
-
+	_, err = c.DeleteAddr(ctx, &pb.DeleteAddrRequest{Idents: shortIdent}, grpc.Header(&header))
 	if err != nil {
 		log.Fatal(err)
 	}
-	UserID := header.Get("UserID")
-	shortAddr := resp.Addres
-	fmt.Println(UserID)
-	fmt.Println(shortAddr)
 }
+
+// func TestShortenerJSON(c pb.ShortenerClient) {
+// 	// набор тестовых данных
+// 	// for _, user := range users {
+// 	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
+// 	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+// 	var header metadata.MD
+// 	// добавляем пользователей
+// 	resp, err := c.PostAddr(ctx, &pb.PostAddrRequset{
+// 		Addres: `{"url":"www.Dlya.ru"}`,
+// 		IsJSON: true,
+// 	},
+// 		grpc.Header(&header))
+
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	UserID := header.Get("UserID")
+// 	shortAddr := resp.Addres
+// 	fmt.Println(UserID)
+// 	fmt.Println(shortAddr)
+// }
 
 func TestShortenerUser(c pb.ShortenerClient) {
 
 	//md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
-	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
+	md := metadata.New(map[string]string{"UserID": "123"})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 	var header metadata.MD
@@ -112,32 +120,37 @@ func TestShortenerUser(c pb.ShortenerClient) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(resp3.Addreses)
+
+	for _, val := range resp3.UserURLs {
+		fmt.Printf("Orig_URL: %s\t Short_URL: %s\n", val.OrigURL, val.ShortURL)
+	}
 	UserID := header.Get("UserID")
-	fmt.Println(UserID)
+	if len(UserID) > 0 {
+		fmt.Printf("New UserID is: %s\n", UserID[0])
+	}
 }
 
 func TestShortenerbatch(c pb.ShortenerClient) {
-	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
+	md := metadata.New(map[string]string{"UserID": "97eb08b6c9e4edf594a43793e825a4b7"})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-	var data []byte
-	var URLs models.InBuff
+	//var data []byte
 	n := 4
+	URLs := make([]*pb.BatchURL, n)
 
 	for i := 0; i < n; i++ {
-		var Save models.BatchIncomeURL
+		var Save pb.BatchURL
 		str := "unique_URL_" + strconv.Itoa(i) + "_" + strconv.Itoa(rand.IntN(100000)) + ".com"
 		Save.URL = str
 		Save.CorrID = "ID_" + strconv.Itoa(i)
-		URLs = append(URLs, Save)
+		URLs[i] = &Save
 	}
 
-	fmt.Println(URLs)
+	//fmt.Println(URLs)
 
-	data, err := json.Marshal(URLs)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// data, err := json.Marshal(URLs)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// strDt := `[
 	// 	{
 	// 		"correlation_id": "ID1",
@@ -165,7 +178,7 @@ func TestShortenerbatch(c pb.ShortenerClient) {
 	var header metadata.MD
 	// добавляем пользователей
 	resp, err := c.PostBatch(ctx, &pb.PostBatchRequset{
-		Income: data,
+		BatchURL: URLs,
 	},
 		grpc.Header(&header))
 
@@ -174,21 +187,47 @@ func TestShortenerbatch(c pb.ShortenerClient) {
 	}
 	//UserID := header.Get("UserID")
 
-	shortAddrsBt := resp.Outcome
-	var shortAddrs models.OutBuff
-	err = json.Unmarshal(shortAddrsBt, &shortAddrs)
-	if err != nil {
-		log.Fatal(err)
+	// var shortAddrs models.OutBuff
+	// err = json.Unmarshal(shortAddrsBt, &shortAddrs)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	for _, val := range resp.BatchURL {
+		fmt.Printf("Corr_id: %s\t Short_URL: %s\n", val.CorrID, val.URL)
 	}
-	fmt.Println(shortAddrs)
 	//fmt.Println(shortAddrs)
-	if len(shortAddrs) > 0 {
+	//fmt.Println(shortAddrs)
+	if len(resp.BatchURL) > 0 {
 		resp2, err := c.GetAddr(ctx, &pb.GetAddrRequset{
-			ShortAddr: shortAddrs[0].ShortURL,
+			ShortAddr: resp.BatchURL[0].URL,
 		})
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(resp2.Addres)
 	}
+}
+
+func PingTest(c pb.ShortenerClient) {
+	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	_, err := c.Ping(ctx, &pb.PingRequest{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("All fine with DB")
+}
+
+func TestGetStats(c pb.ShortenerClient) {
+	md := metadata.New(map[string]string{"X-Real-IP": "127.0.0.1"})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	resp, err := c.GetStats(ctx, &pb.GetStatsRequest{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Num_users: %d\t Num_URLs: %d\n", resp.NumUsers, resp.NumURLs)
 }

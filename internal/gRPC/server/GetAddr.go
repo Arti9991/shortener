@@ -3,7 +3,6 @@ package protoServer
 import (
 	// импортируем пакет со сгенерированными protobuf-файлами
 	"context"
-	"fmt"
 	"regexp"
 
 	pb "github.com/Arti9991/shortener/internal/gRPC/proto"
@@ -19,8 +18,6 @@ func (s *ProtoServer) GetAddr(ctx context.Context, in *pb.GetAddrRequset) (*pb.G
 	re := regexp.MustCompile(`^.*/`)
 	// Заменяем найденное на пустоту
 	ident := re.ReplaceAllString(in.ShortAddr, "")
-
-	fmt.Println(ident)
 
 	origURL, err := s.Hd.Dt.Get(ident)
 	if err == models.ErrorDeleted {

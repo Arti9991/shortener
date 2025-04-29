@@ -3,6 +3,7 @@ package protoServer
 import (
 	// импортируем пакет со сгенерированными protobuf-файлами
 	"context"
+	"sync"
 
 	"github.com/Arti9991/shortener/internal/app/auth"
 	pb "github.com/Arti9991/shortener/internal/gRPC/proto"
@@ -10,14 +11,12 @@ import (
 	"github.com/Arti9991/shortener/internal/models"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 // AddUser реализует интерфейс добавления пользователя.
-func (s *ProtoServer) GetAddrUser(ctx context.Context, in *pb.GetAddrUserRequset) (*pb.GetAddrUserResponse, error) {
-	var response pb.GetAddrUserResponse
+func (s *ProtoServer) DeleteAddr(ctx context.Context, in *pb.DeleteAddrRequest) (*pb.DeleteAddrResponse, error) {
+	var response pb.DeleteAddrResponse
 
 	// получение из контекста UserID и информации о регистрации
 	UserInfo := ctx.Value(models.CtxKey).(models.UserInfo)
@@ -37,29 +36,21 @@ func (s *ProtoServer) GetAddrUser(ctx context.Context, in *pb.GetAddrUserRequset
 		if err != nil {
 			logger.Log.Info("Error in setting header", zap.Error(err))
 		}
-		logger.Log.Info("This is a new user")
-		return &response, nil
 	}
 
-	OutBuff, err := s.Hd.Dt.GetUser(UserID, s.Hd.BaseAdr)
-	if err == models.ErrorNoUserURL {
-		logger.Log.Info("This user has no URL", zap.Error(err))
-		return &response, nil
-	} else if err != nil {
-		return nil, status.Errorf(codes.Aborted, `Ошибка в базе данных %s`, err.Error())
-	}
-
-	for _, val := range OutBuff {
-		var Save pb.UserURLs
-		Save.OrigURL = val.OrigURL
-		Save.ShortURL = val.ShortURL
-		response.UserURLs = append(response.UserURLs, &Save)
-	}
-	// кодирование тела ответа
-	// out, err := json.Marshal(OutBuff)
-	// if err != nil {
-	// 	return nil, status.Errorf(codes.Aborted, `Ошибка в кодировании JSON %s`, err.Error())
-	// }
+	s.Hd.Wg.Add(1)
+	SendDelete(s.Hd.Wg, in.Idents, UserID, s.Hd.OutDelCh)
 
 	return &response, nil
+}
+
+func SendDelete(wg *sync.WaitGroup, URLs []string, UserID string, outCh chan models.DeleteURL) {
+
+	go func() {
+		defer wg.Done()
+		var InURLs models.DeleteURL
+		InURLs.ShortURL = URLs
+		InURLs.UserID = UserID
+		outCh <- InURLs
+	}()
 }

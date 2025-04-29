@@ -229,7 +229,6 @@ func (db *DBStor) DropTable() error {
 // Ping проверка соединения с базой данных.
 func (db *DBStor) Ping() error {
 	var err error
-	defer db.DB.Close()
 	if err = db.DB.Ping(); err != nil {
 		return err
 	}

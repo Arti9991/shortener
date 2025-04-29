@@ -4,8 +4,6 @@ import (
 	// импортируем пакет со сгенерированными protobuf-файлами
 
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/Arti9991/shortener/internal/app/auth"
 	pb "github.com/Arti9991/shortener/internal/gRPC/proto"
@@ -39,21 +37,18 @@ func (s *ProtoServer) PostBatch(ctx context.Context, in *pb.PostBatchRequset) (*
 		if err != nil {
 			logger.Log.Info("Error in setting header", zap.Error(err))
 		}
-		fmt.Println(UserID)
 	}
 
-	var InURLs models.InBuff
+	InURLs := make(models.InBuff, len(in.BatchURL))
 	var err error
-	// декодирование тела запроса.
-	err = json.Unmarshal(in.Income, &InURLs)
-	if err != nil {
-		logger.Log.Info("Bad request unmarshall", zap.Error(err))
-		return nil, status.Errorf(codes.Aborted, `Ошибка в докодировании JSON %s`, err.Error())
-	}
+
 	//заполнение вспомогательной структуры хэшами.
-	for i := range InURLs {
+	for i, val := range in.BatchURL {
 		InURLs[i].Hash = models.RandomString(8)
 		InURLs[i].UserID = UserID
+		InURLs[i].CorrID = val.CorrID
+		InURLs[i].URL = val.URL
+
 	}
 	// сохранение URL в базу.
 	OutBuff, err := s.Hd.Dt.SaveTx(InURLs, s.Hd.BaseAdr)
@@ -68,14 +63,12 @@ func (s *ProtoServer) PostBatch(ctx context.Context, in *pb.PostBatchRequset) (*
 		logger.Log.Info("Error in FileSaveTx", zap.Error(err))
 	}
 
-	// кодирование тела ответа.
-	out, err := json.Marshal(OutBuff)
-	if err != nil {
-		logger.Log.Info("Wrong responce body", zap.Error(err))
-		return nil, status.Errorf(codes.Aborted, `Ошибка в кодировании JSON %s`, err.Error())
+	for _, val := range OutBuff {
+		var OutPart pb.BatchURL
+		OutPart.CorrID = val.CorrID
+		OutPart.URL = val.ShortURL
+		response.BatchURL = append(response.BatchURL, &OutPart)
 	}
-	fmt.Println(string(out))
-	response.Outcome = out
 
 	return &response, nil
 }
