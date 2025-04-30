@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// структура с инфомрацией о сервере
 type ProtoServer struct {
 	Inmemory *inmemory.Data
 	Files    *files.FileData
@@ -33,6 +34,7 @@ type ProtoServer struct {
 	proto.UnimplementedShortenerServer
 }
 
+// InitServer инициализация структур для сервера
 func InitServer() (*ProtoServer, error) {
 
 	var ProtoServ ProtoServer
@@ -92,6 +94,7 @@ func (s *ProtoServer) StorInit(ShutDownCtx context.Context, wg *sync.WaitGroup, 
 	}
 }
 
+// RunGRPCServer функция запуска gRPC сервера
 func RunGRPCServer() error {
 	// контекст для ожидания системного сигнала на завершение работы
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

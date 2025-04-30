@@ -16,13 +16,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// PostAddr
+// PostBatch метод для множественного сохранения URL в базе
 func (s *ProtoServer) PostBatch(ctx context.Context, in *pb.PostBatchRequset) (*pb.PostBatchResponse, error) {
 	var response pb.PostBatchResponse
 	// получение из контекста UserID и информации о регистрации
 	UserInfo := ctx.Value(models.CtxKey).(models.UserInfo)
 	UserID := UserInfo.UserID
-
+	// получение из контекста UserID и информации о регистрации
 	if !UserInfo.Register {
 		UserID = models.RandomString(16)
 
@@ -42,7 +42,7 @@ func (s *ProtoServer) PostBatch(ctx context.Context, in *pb.PostBatchRequset) (*
 	InURLs := make(models.InBuff, len(in.BatchURL))
 	var err error
 
-	//заполнение вспомогательной структуры хэшами.
+	//заполнение вспомогательной из данных запроса
 	for i, val := range in.BatchURL {
 		InURLs[i].Hash = models.RandomString(8)
 		InURLs[i].UserID = UserID
@@ -62,7 +62,7 @@ func (s *ProtoServer) PostBatch(ctx context.Context, in *pb.PostBatchRequset) (*
 	if err != nil {
 		logger.Log.Info("Error in FileSaveTx", zap.Error(err))
 	}
-
+	// заполнение ответной структуры
 	for _, val := range OutBuff {
 		var OutPart pb.BatchURL
 		OutPart.CorrID = val.CorrID

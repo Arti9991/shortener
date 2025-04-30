@@ -36,6 +36,7 @@ func main() {
 	TestGetStats(c)
 }
 
+// BaseTestShortener функция для простейших POST и GET запросов
 func BaseTestShortener(c pb.ShortenerClient) {
 	// набор тестовых данных
 	// for _, user := range users {
@@ -108,6 +109,7 @@ func BaseTestShortener(c pb.ShortenerClient) {
 // 	fmt.Println(shortAddr)
 // }
 
+// TestShortenerUser функция для получения информации о пользователе
 func TestShortenerUser(c pb.ShortenerClient) {
 
 	//md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
@@ -130,6 +132,7 @@ func TestShortenerUser(c pb.ShortenerClient) {
 	}
 }
 
+// TestShortenerbatch функция для Batch POST запроса
 func TestShortenerbatch(c pb.ShortenerClient) {
 	md := metadata.New(map[string]string{"UserID": "97eb08b6c9e4edf594a43793e825a4b7"})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
@@ -208,6 +211,7 @@ func TestShortenerbatch(c pb.ShortenerClient) {
 	}
 }
 
+// PingTest функция для запроса Ping
 func PingTest(c pb.ShortenerClient) {
 	md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
@@ -220,6 +224,7 @@ func PingTest(c pb.ShortenerClient) {
 	fmt.Println("All fine with DB")
 }
 
+// TestGetStats функция для получения статистики по серверу
 func TestGetStats(c pb.ShortenerClient) {
 	md := metadata.New(map[string]string{"X-Real-IP": "127.0.0.1"})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)

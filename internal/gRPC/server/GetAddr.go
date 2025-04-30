@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// AddUser реализует интерфейс добавления пользователя.
+// GetAddr получение исходного URL по укороченному
 func (s *ProtoServer) GetAddr(ctx context.Context, in *pb.GetAddrRequset) (*pb.GetAddrResponse, error) {
 	var response pb.GetAddrResponse
 
@@ -25,7 +25,7 @@ func (s *ProtoServer) GetAddr(ctx context.Context, in *pb.GetAddrRequset) (*pb.G
 	} else if err != nil {
 		return nil, status.Errorf(codes.Aborted, `Ошибка в базе данных %s`, err.Error())
 	}
-
+	// заполнение ответного короткого URL
 	response.Addres = origURL
 
 	return &response, nil

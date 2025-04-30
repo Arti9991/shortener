@@ -15,14 +15,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// AddUser реализует интерфейс добавления пользователя.
+// GetAddrUser метод получения всех URL, сохраненных пользователем
 func (s *ProtoServer) GetAddrUser(ctx context.Context, in *pb.GetAddrUserRequset) (*pb.GetAddrUserResponse, error) {
 	var response pb.GetAddrUserResponse
 
 	// получение из контекста UserID и информации о регистрации
 	UserInfo := ctx.Value(models.CtxKey).(models.UserInfo)
 	UserID := UserInfo.UserID
-
+	// если пользователь не зарегистрирован, выдаем ему ID
 	if !UserInfo.Register {
 		UserID = models.RandomString(16)
 
@@ -48,18 +48,13 @@ func (s *ProtoServer) GetAddrUser(ctx context.Context, in *pb.GetAddrUserRequset
 	} else if err != nil {
 		return nil, status.Errorf(codes.Aborted, `Ошибка в базе данных %s`, err.Error())
 	}
-
+	// заполнение ответной структуры
 	for _, val := range OutBuff {
 		var Save pb.UserURLs
 		Save.OrigURL = val.OrigURL
 		Save.ShortURL = val.ShortURL
 		response.UserURLs = append(response.UserURLs, &Save)
 	}
-	// кодирование тела ответа
-	// out, err := json.Marshal(OutBuff)
-	// if err != nil {
-	// 	return nil, status.Errorf(codes.Aborted, `Ошибка в кодировании JSON %s`, err.Error())
-	// }
 
 	return &response, nil
 }

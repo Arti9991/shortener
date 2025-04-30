@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// AddUser реализует интерфейс добавления пользователя.
+// Ping метод для проверки соединения с базой
 func (s *ProtoServer) Ping(ctx context.Context, in *pb.PingRequest) (*pb.PingResponse, error) {
 	var response pb.PingResponse
 

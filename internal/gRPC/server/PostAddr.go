@@ -18,13 +18,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// PostAddr
+// PostAddr метод для сохранения URL в базе
 func (s *ProtoServer) PostAddr(ctx context.Context, in *pb.PostAddrRequset) (*pb.PostAddrResponse, error) {
 	var response pb.PostAddrResponse
 	// получение из контекста UserID и информации о регистрации
 	UserInfo := ctx.Value(models.CtxKey).(models.UserInfo)
 	UserID := UserInfo.UserID
-
+	// получение из контекста UserID и информации о регистрации
 	if !UserInfo.Register {
 		UserID = models.RandomString(16)
 
@@ -67,9 +67,8 @@ func (s *ProtoServer) PostAddr(ctx context.Context, in *pb.PostAddrRequset) (*pb
 	if err != nil {
 		logger.Log.Info("Error in FileSave", zap.Error(err))
 	}
-
+	// выставляем ответную строку
 	ansStr := s.Hd.BaseAdr + "/" + hashStr
-
 	response.Addres = ansStr
 
 	return &response, nil

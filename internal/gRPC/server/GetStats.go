@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// AddUser реализует интерфейс добавления пользователя.
+// GetStats метод получения статистики для сервера
 func (s *ProtoServer) GetStats(ctx context.Context, in *pb.GetStatsRequest) (*pb.GetStatsResponse, error) {
 	var response pb.GetStatsResponse
 
@@ -27,7 +27,7 @@ func (s *ProtoServer) GetStats(ctx context.Context, in *pb.GetStatsRequest) (*pb
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, `Ошибка в парсинге доверенного IP`)
 	}
-
+	// получем информации об IP из метаданных
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
 		values := md.Get("X-Real-IP")

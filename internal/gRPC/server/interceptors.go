@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// перехватчик для получения информации об авторизации пользователя из метаданных
 func atuhInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 
 	var UserID string
@@ -44,6 +45,7 @@ func atuhInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServe
 	return handler(newCtx, req)
 }
 
+// loggingInterceptor перехватчик для логирования вызваного метода
 func loggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 
 	logger.Log.Info("Recieved new request", zap.String("Method", info.FullMethod))

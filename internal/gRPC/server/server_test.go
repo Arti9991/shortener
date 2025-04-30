@@ -53,6 +53,7 @@ func InitServerTest() (*ProtoServer, error) {
 	return &ProtoServ, nil
 }
 
+// RunGRPCServer функция запуска gRPC сервера для тестов
 func RunGRPCServerTest() error {
 	// контекст для ожидания системного сигнала на завершение работы
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
