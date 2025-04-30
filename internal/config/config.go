@@ -55,10 +55,12 @@ func InitConfTests() Config {
 	var conf Config
 	conf.HostAdr = "localhost:8080"
 	conf.BaseAdr = "http://example.com"
-	conf.LoggLevel = "Info"
+	conf.LoggLevel = "Error"
 	conf.FilePath = ""
 	conf.DBAddress = ""
+	//conf.DBAddress = "host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable"
 	conf.EnableHTTPS = false
+	conf.TrustedNet = "127.0.0.0/24"
 	return conf
 }
 
