@@ -20,7 +20,7 @@ func main() {
 	fmt.Printf("Build date: %s\n", buildDate)
 	fmt.Printf("Build commit: %s\n", buildCommit)
 
-	RestServer := false
+	RestServer := true
 	// запуск сервера со всеми настройками
 	if RestServer {
 		err := server.RunRestServer()
