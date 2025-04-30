@@ -31,6 +31,8 @@ var (
 	FROM urls WHERE user_id = $1;`
 	QuerryDeleteURL = `UPDATE urls SET delete_flag=TRUE
 	WHERE user_id = ($1) AND hash_id = ANY($2);`
+	QuerryStats = `SELECT COUNT(*), COUNT( DISTINCT user_id)
+	FROM urls;`
 
 	QuerryDropTable = `DROP TABLE urls;` // только для тестов!!!
 )
@@ -227,7 +229,6 @@ func (db *DBStor) DropTable() error {
 // Ping проверка соединения с базой данных.
 func (db *DBStor) Ping() error {
 	var err error
-	defer db.DB.Close()
 	if err = db.DB.Ping(); err != nil {
 		return err
 	}
@@ -244,4 +245,21 @@ func (db *DBStor) CodeIsUniqueViolation(err error) bool {
 // CloseDB закрытие соединения с базой данных
 func (db *DBStor) CloseDB() error {
 	return db.DB.Close()
+}
+
+// Stats функция для получения количества сохраненых
+// URL в базе и количества пользователей
+func (db *DBStor) Stats() (models.URLStats, error) {
+
+	var stats models.URLStats
+	if db.InFiles {
+		return stats, nil
+	}
+
+	row := db.DB.QueryRow(QuerryStats)
+	err := row.Scan(&stats.NumUrls, &stats.NumUsers)
+	if err != nil {
+		return stats, err
+	}
+	return stats, nil
 }

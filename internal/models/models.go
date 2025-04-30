@@ -63,6 +63,13 @@ type DeleteURL struct {
 	ShortURL []string
 }
 
+// URLStats структура для хранения и кодирования информации
+// о статистике сервера
+type URLStats struct {
+	NumUrls  int `json:"urls"`
+	NumUsers int `json:"users"`
+}
+
 // RandomString функция для создания случайно строки заданной длинны.
 func RandomString(n int) string {
 

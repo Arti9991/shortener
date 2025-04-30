@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	protoServer "github.com/Arti9991/shortener/internal/gRPC/server"
 	"github.com/Arti9991/shortener/internal/server"
 )
 
@@ -19,9 +20,17 @@ func main() {
 	fmt.Printf("Build date: %s\n", buildDate)
 	fmt.Printf("Build commit: %s\n", buildCommit)
 
+	RestServer := true
 	// запуск сервера со всеми настройками
-	err := server.RunServer()
-	if err != nil {
-		log.Fatal(err)
+	if RestServer {
+		err := server.RunRestServer()
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		err := protoServer.RunGRPCServer()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
