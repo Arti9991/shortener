@@ -201,21 +201,31 @@ func TestServer(t *testing.T) {
 			},
 		},
 		{
+			name:        "GET request with bad user",
+			request:     "bad user",
+			UserID:      "123",
+			BodyPostGet: "www.test6.ru",
+			want: want{
+				RespBody: "http://example.com",
+				Err:      nil,
+			},
+		},
+		{
 			name:    "Batch POST, DELETE and GET deleted URL",
 			request: "delete addr",
 			UserID:  "8c537969b84ad4eb0a73e29b3f2a9030",
 			BodyBatch: []*pb.BatchURL{
 				{
-					CorrID: "ID6",
-					URL:    "www.test6.ru",
-				},
-				{
 					CorrID: "ID7",
 					URL:    "www.test7.ru",
 				},
 				{
-					CorrID: "ID8",
+					CorrID: "ID7",
 					URL:    "www.test8.ru",
+				},
+				{
+					CorrID: "ID9",
+					URL:    "www.test9.ru",
 				},
 			},
 			want: want{
@@ -228,8 +238,8 @@ func TestServer(t *testing.T) {
 			UserID:  "8c537969b84ad4eb0a73e29b3f2a9030",
 			UserIP:  "127.0.0.1",
 			want: want{
-				NumUrls:  5,
-				NumUsers: 2,
+				NumUrls:  6,
+				NumUsers: 3,
 				Err:      nil,
 			},
 		},
@@ -317,6 +327,21 @@ func TestServer(t *testing.T) {
 				assert.Equal(t, test.BodyBatch[i].URL, val.OrigURL)
 				assert.True(t, strings.Contains(val.ShortURL, test.want.RespBodyBatch[i].URL))
 			}
+		case "bad user":
+			// тест на запрос POST с плохим userID
+			fmt.Println(test.name)
+			md := metadata.New(map[string]string{"UserID": test.UserID})
+			ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+			var header metadata.MD
+			// добавляем пользователей
+			_, err := c.PostAddr(ctx, &pb.PostAddrRequset{
+				Addres: test.BodyPostGet,
+			},
+				grpc.Header(&header))
+			require.NoError(t, err)
+			NewUserID := header.Get("UserID")
+			assert.True(t, len(NewUserID) > 0)
 		// case "delete addr":
 		//	// ДОСТУПНО ТОЛЬКО С БАЗОЙ
 		//	// тест на множественный POST и удаление одного из URL

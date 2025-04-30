@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/Arti9991/shortener/internal/app/auth"
+	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/models"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -40,4 +42,11 @@ func atuhInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServe
 
 	newCtx := context.WithValue(ctx, models.CtxKey, models.UserInfo{UserID: UserID, Register: UserExist})
 	return handler(newCtx, req)
+}
+
+func loggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+
+	logger.Log.Info("Recieved new request", zap.String("Method", info.FullMethod))
+
+	return handler(ctx, req)
 }

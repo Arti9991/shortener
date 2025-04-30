@@ -112,7 +112,8 @@ func RunGRPCServer() error {
 		return err
 	}
 	// создаём gRPC-сервер без зарегистрированной службы
-	s := grpc.NewServer(grpc.UnaryInterceptor(atuhInterceptor))
+	interceptors := grpc.ChainUnaryInterceptor(atuhInterceptor, loggingInterceptor)
+	s := grpc.NewServer(interceptors)
 	// регистрируем сервис
 
 	proto.RegisterShortenerServer(s, serv)
