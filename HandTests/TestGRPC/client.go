@@ -17,8 +17,9 @@ import (
 )
 
 func main() {
+
 	// устанавливаем соединение с сервером
-	conn, err := grpc.Dial(":8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(":8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -19,13 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Shortener_PostAddr_FullMethodName    = "/protoServer.Shortener/PostAddr"
-	Shortener_GetAddr_FullMethodName     = "/protoServer.Shortener/GetAddr"
-	Shortener_GetAddrUser_FullMethodName = "/protoServer.Shortener/GetAddrUser"
-	Shortener_PostBatch_FullMethodName   = "/protoServer.Shortener/PostBatch"
-	Shortener_Ping_FullMethodName        = "/protoServer.Shortener/Ping"
-	Shortener_DeleteAddr_FullMethodName  = "/protoServer.Shortener/DeleteAddr"
-	Shortener_GetStats_FullMethodName    = "/protoServer.Shortener/GetStats"
+	Shortener_PostAddr_FullMethodName    = "/protoserver.Shortener/PostAddr"
+	Shortener_GetAddr_FullMethodName     = "/protoserver.Shortener/GetAddr"
+	Shortener_GetAddrUser_FullMethodName = "/protoserver.Shortener/GetAddrUser"
+	Shortener_PostBatch_FullMethodName   = "/protoserver.Shortener/PostBatch"
+	Shortener_Ping_FullMethodName        = "/protoserver.Shortener/Ping"
+	Shortener_DeleteAddr_FullMethodName  = "/protoserver.Shortener/DeleteAddr"
+	Shortener_GetStats_FullMethodName    = "/protoserver.Shortener/GetStats"
 )
 
 // ShortenerClient is the client API for Shortener service.
@@ -312,7 +312,7 @@ func _Shortener_GetStats_Handler(srv interface{}, ctx context.Context, dec func(
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Shortener_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protoServer.Shortener",
+	ServiceName: "protoserver.Shortener",
 	HandlerType: (*ShortenerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

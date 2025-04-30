@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package protoServer;
+package protoserver;
 
-option go_package = "protoServer/proto";
+option go_package = "protoserver/proto";
 
 message PostAddrRequset {
   string addres = 1;  // адрес для сокращения

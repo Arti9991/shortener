@@ -713,7 +713,7 @@ var File_proto_shortener_proto protoreflect.FileDescriptor
 
 const file_proto_shortener_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/shortener.proto\x12\vprotoServer\")\n" +
+	"\x15proto/shortener.proto\x12\vprotoserver\")\n" +
 	"\x0fPostAddrRequset\x12\x16\n" +
 	"\x06addres\x18\x01 \x01(\tR\x06addres\"*\n" +
 	"\x10PostAddrResponse\x12\x16\n" +
@@ -727,14 +727,14 @@ const file_proto_shortener_proto_rawDesc = "" +
 	"\bshortURL\x18\x02 \x01(\tR\bshortURL\"\x14\n" +
 	"\x12GetAddrUserRequset\"H\n" +
 	"\x13GetAddrUserResponse\x121\n" +
-	"\buserURLs\x18\x01 \x03(\v2\x15.protoServer.UserURLsR\buserURLs\"4\n" +
+	"\buserURLs\x18\x01 \x03(\v2\x15.protoserver.UserURLsR\buserURLs\"4\n" +
 	"\bBatchURL\x12\x16\n" +
 	"\x06corrID\x18\x01 \x01(\tR\x06corrID\x12\x10\n" +
 	"\x03URL\x18\x02 \x01(\tR\x03URL\"E\n" +
 	"\x10PostBatchRequset\x121\n" +
-	"\bbatchURL\x18\x01 \x03(\v2\x15.protoServer.BatchURLR\bbatchURL\"F\n" +
+	"\bbatchURL\x18\x01 \x03(\v2\x15.protoserver.BatchURLR\bbatchURL\"F\n" +
 	"\x11PostBatchResponse\x121\n" +
-	"\bbatchURL\x18\x01 \x03(\v2\x15.protoServer.BatchURLR\bbatchURL\"\r\n" +
+	"\bbatchURL\x18\x01 \x03(\v2\x15.protoserver.BatchURLR\bbatchURL\"\r\n" +
 	"\vPingRequest\"\x0e\n" +
 	"\fPingResponse\"+\n" +
 	"\x11DeleteAddrRequest\x12\x16\n" +
@@ -745,14 +745,14 @@ const file_proto_shortener_proto_rawDesc = "" +
 	"\anumURLs\x18\x01 \x01(\x03R\anumURLs\x12\x1a\n" +
 	"\bnumUsers\x18\x02 \x01(\x03R\bnumUsers2\x8d\x04\n" +
 	"\tShortener\x12G\n" +
-	"\bPostAddr\x12\x1c.protoServer.PostAddrRequset\x1a\x1d.protoServer.PostAddrResponse\x12D\n" +
-	"\aGetAddr\x12\x1b.protoServer.GetAddrRequset\x1a\x1c.protoServer.GetAddrResponse\x12P\n" +
-	"\vGetAddrUser\x12\x1f.protoServer.GetAddrUserRequset\x1a .protoServer.GetAddrUserResponse\x12J\n" +
-	"\tPostBatch\x12\x1d.protoServer.PostBatchRequset\x1a\x1e.protoServer.PostBatchResponse\x12;\n" +
-	"\x04Ping\x12\x18.protoServer.PingRequest\x1a\x19.protoServer.PingResponse\x12M\n" +
+	"\bPostAddr\x12\x1c.protoserver.PostAddrRequset\x1a\x1d.protoserver.PostAddrResponse\x12D\n" +
+	"\aGetAddr\x12\x1b.protoserver.GetAddrRequset\x1a\x1c.protoserver.GetAddrResponse\x12P\n" +
+	"\vGetAddrUser\x12\x1f.protoserver.GetAddrUserRequset\x1a .protoserver.GetAddrUserResponse\x12J\n" +
+	"\tPostBatch\x12\x1d.protoserver.PostBatchRequset\x1a\x1e.protoserver.PostBatchResponse\x12;\n" +
+	"\x04Ping\x12\x18.protoserver.PingRequest\x1a\x19.protoserver.PingResponse\x12M\n" +
 	"\n" +
-	"DeleteAddr\x12\x1e.protoServer.DeleteAddrRequest\x1a\x1f.protoServer.DeleteAddrResponse\x12G\n" +
-	"\bGetStats\x12\x1c.protoServer.GetStatsRequest\x1a\x1d.protoServer.GetStatsResponseB\x13Z\x11protoServer/protob\x06proto3"
+	"DeleteAddr\x12\x1e.protoserver.DeleteAddrRequest\x1a\x1f.protoserver.DeleteAddrResponse\x12G\n" +
+	"\bGetStats\x12\x1c.protoserver.GetStatsRequest\x1a\x1d.protoserver.GetStatsResponseB\x13Z\x11protoserver/protob\x06proto3"
 
 var (
 	file_proto_shortener_proto_rawDescOnce sync.Once
@@ -768,41 +768,41 @@ func file_proto_shortener_proto_rawDescGZIP() []byte {
 
 var file_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_proto_shortener_proto_goTypes = []any{
-	(*PostAddrRequset)(nil),     // 0: protoServer.PostAddrRequset
-	(*PostAddrResponse)(nil),    // 1: protoServer.PostAddrResponse
-	(*GetAddrRequset)(nil),      // 2: protoServer.GetAddrRequset
-	(*GetAddrResponse)(nil),     // 3: protoServer.GetAddrResponse
-	(*UserURLs)(nil),            // 4: protoServer.UserURLs
-	(*GetAddrUserRequset)(nil),  // 5: protoServer.GetAddrUserRequset
-	(*GetAddrUserResponse)(nil), // 6: protoServer.GetAddrUserResponse
-	(*BatchURL)(nil),            // 7: protoServer.BatchURL
-	(*PostBatchRequset)(nil),    // 8: protoServer.PostBatchRequset
-	(*PostBatchResponse)(nil),   // 9: protoServer.PostBatchResponse
-	(*PingRequest)(nil),         // 10: protoServer.PingRequest
-	(*PingResponse)(nil),        // 11: protoServer.PingResponse
-	(*DeleteAddrRequest)(nil),   // 12: protoServer.DeleteAddrRequest
-	(*DeleteAddrResponse)(nil),  // 13: protoServer.DeleteAddrResponse
-	(*GetStatsRequest)(nil),     // 14: protoServer.GetStatsRequest
-	(*GetStatsResponse)(nil),    // 15: protoServer.GetStatsResponse
+	(*PostAddrRequset)(nil),     // 0: protoserver.PostAddrRequset
+	(*PostAddrResponse)(nil),    // 1: protoserver.PostAddrResponse
+	(*GetAddrRequset)(nil),      // 2: protoserver.GetAddrRequset
+	(*GetAddrResponse)(nil),     // 3: protoserver.GetAddrResponse
+	(*UserURLs)(nil),            // 4: protoserver.UserURLs
+	(*GetAddrUserRequset)(nil),  // 5: protoserver.GetAddrUserRequset
+	(*GetAddrUserResponse)(nil), // 6: protoserver.GetAddrUserResponse
+	(*BatchURL)(nil),            // 7: protoserver.BatchURL
+	(*PostBatchRequset)(nil),    // 8: protoserver.PostBatchRequset
+	(*PostBatchResponse)(nil),   // 9: protoserver.PostBatchResponse
+	(*PingRequest)(nil),         // 10: protoserver.PingRequest
+	(*PingResponse)(nil),        // 11: protoserver.PingResponse
+	(*DeleteAddrRequest)(nil),   // 12: protoserver.DeleteAddrRequest
+	(*DeleteAddrResponse)(nil),  // 13: protoserver.DeleteAddrResponse
+	(*GetStatsRequest)(nil),     // 14: protoserver.GetStatsRequest
+	(*GetStatsResponse)(nil),    // 15: protoserver.GetStatsResponse
 }
 var file_proto_shortener_proto_depIdxs = []int32{
-	4,  // 0: protoServer.GetAddrUserResponse.userURLs:type_name -> protoServer.UserURLs
-	7,  // 1: protoServer.PostBatchRequset.batchURL:type_name -> protoServer.BatchURL
-	7,  // 2: protoServer.PostBatchResponse.batchURL:type_name -> protoServer.BatchURL
-	0,  // 3: protoServer.Shortener.PostAddr:input_type -> protoServer.PostAddrRequset
-	2,  // 4: protoServer.Shortener.GetAddr:input_type -> protoServer.GetAddrRequset
-	5,  // 5: protoServer.Shortener.GetAddrUser:input_type -> protoServer.GetAddrUserRequset
-	8,  // 6: protoServer.Shortener.PostBatch:input_type -> protoServer.PostBatchRequset
-	10, // 7: protoServer.Shortener.Ping:input_type -> protoServer.PingRequest
-	12, // 8: protoServer.Shortener.DeleteAddr:input_type -> protoServer.DeleteAddrRequest
-	14, // 9: protoServer.Shortener.GetStats:input_type -> protoServer.GetStatsRequest
-	1,  // 10: protoServer.Shortener.PostAddr:output_type -> protoServer.PostAddrResponse
-	3,  // 11: protoServer.Shortener.GetAddr:output_type -> protoServer.GetAddrResponse
-	6,  // 12: protoServer.Shortener.GetAddrUser:output_type -> protoServer.GetAddrUserResponse
-	9,  // 13: protoServer.Shortener.PostBatch:output_type -> protoServer.PostBatchResponse
-	11, // 14: protoServer.Shortener.Ping:output_type -> protoServer.PingResponse
-	13, // 15: protoServer.Shortener.DeleteAddr:output_type -> protoServer.DeleteAddrResponse
-	15, // 16: protoServer.Shortener.GetStats:output_type -> protoServer.GetStatsResponse
+	4,  // 0: protoserver.GetAddrUserResponse.userURLs:type_name -> protoserver.UserURLs
+	7,  // 1: protoserver.PostBatchRequset.batchURL:type_name -> protoserver.BatchURL
+	7,  // 2: protoserver.PostBatchResponse.batchURL:type_name -> protoserver.BatchURL
+	0,  // 3: protoserver.Shortener.PostAddr:input_type -> protoserver.PostAddrRequset
+	2,  // 4: protoserver.Shortener.GetAddr:input_type -> protoserver.GetAddrRequset
+	5,  // 5: protoserver.Shortener.GetAddrUser:input_type -> protoserver.GetAddrUserRequset
+	8,  // 6: protoserver.Shortener.PostBatch:input_type -> protoserver.PostBatchRequset
+	10, // 7: protoserver.Shortener.Ping:input_type -> protoserver.PingRequest
+	12, // 8: protoserver.Shortener.DeleteAddr:input_type -> protoserver.DeleteAddrRequest
+	14, // 9: protoserver.Shortener.GetStats:input_type -> protoserver.GetStatsRequest
+	1,  // 10: protoserver.Shortener.PostAddr:output_type -> protoserver.PostAddrResponse
+	3,  // 11: protoserver.Shortener.GetAddr:output_type -> protoserver.GetAddrResponse
+	6,  // 12: protoserver.Shortener.GetAddrUser:output_type -> protoserver.GetAddrUserResponse
+	9,  // 13: protoserver.Shortener.PostBatch:output_type -> protoserver.PostBatchResponse
+	11, // 14: protoserver.Shortener.Ping:output_type -> protoserver.PingResponse
+	13, // 15: protoserver.Shortener.DeleteAddr:output_type -> protoserver.DeleteAddrResponse
+	15, // 16: protoserver.Shortener.GetStats:output_type -> protoserver.GetStatsResponse
 	10, // [10:17] is the sub-list for method output_type
 	3,  // [3:10] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name

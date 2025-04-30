@@ -1,4 +1,4 @@
-package protoServer
+package protoserver
 
 import (
 	"context"

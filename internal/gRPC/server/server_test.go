@@ -1,4 +1,4 @@
-package protoServer
+package protoserver
 
 import (
 	"context"
@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/Arti9991/shortener/internal/config"
-	"github.com/Arti9991/shortener/internal/gRPC/proto"
 	pb "github.com/Arti9991/shortener/internal/gRPC/proto"
 	"github.com/Arti9991/shortener/internal/logger"
 	"github.com/Arti9991/shortener/internal/server"
@@ -77,7 +76,7 @@ func RunGRPCServerTest() error {
 	s := grpc.NewServer(grpc.UnaryInterceptor(atuhInterceptor))
 	// регистрируем сервис
 
-	proto.RegisterShortenerServer(s, serv)
+	pb.RegisterShortenerServer(s, serv)
 
 	logger.Log.Info("New server initialyzed!",
 		zap.String("Server addres:", serv.Config.HostAdr),
@@ -258,7 +257,7 @@ func TestServer(t *testing.T) {
 		// },
 	}
 	// устанавливаем соединение с сервером
-	conn, err := grpc.Dial(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
