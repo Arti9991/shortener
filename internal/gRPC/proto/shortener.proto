@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package protoserver;
+
+option go_package = "protoserver/proto";
+
+message PostAddrRequset {
+  string addres = 1;  // адрес для сокращения
+}
+
+message PostAddrResponse {
+  string addres = 1;  // адрес для сокращения
+}
+
+message GetAddrRequset {
+  string shortAddr = 1;  // короткий адрес
+}
+
+message GetAddrResponse {
+  string addres = 1;  // длинный адрес
+}
+
+message UserURLs{
+   string origURL = 1;
+   string shortURL = 2;
+}
+message GetAddrUserRequset {
+}
+
+message GetAddrUserResponse {
+  repeated UserURLs userURLs = 1;  // длинный адрес
+}
+
+message BatchURL{
+  string corrID = 1;
+  string URL = 2;
+}
+message PostBatchRequset {
+  repeated BatchURL batchURL = 1;  // адреса для сокращения
+}
+
+message PostBatchResponse {
+  repeated BatchURL batchURL = 1;  // адрес для сокращения
+}
+
+message PingRequest {
+}
+
+message PingResponse {
+}
+
+message DeleteAddrRequest {
+  repeated string idents = 1;
+
+}
+message DeleteAddrResponse{
+}
+
+message GetStatsRequest{
+
+}
+
+message GetStatsResponse{
+  int64 numURLs = 1;
+  int64 numUsers = 2;
+}
+
+service Shortener {
+  rpc PostAddr(PostAddrRequset) returns (PostAddrResponse);
+  rpc GetAddr(GetAddrRequset) returns (GetAddrResponse);
+  rpc GetAddrUser(GetAddrUserRequset) returns (GetAddrUserResponse);
+  rpc PostBatch(PostBatchRequset) returns (PostBatchResponse);
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc DeleteAddr(DeleteAddrRequest) returns(DeleteAddrResponse);
+  rpc GetStats(GetStatsRequest) returns(GetStatsResponse);
+}

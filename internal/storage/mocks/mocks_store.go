@@ -149,3 +149,18 @@ func (mr *MockStorFuncMockRecorder) SaveTx(InURLs, BaseAdr interface{}) *gomock.
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveTx", reflect.TypeOf((*MockStorFunc)(nil).SaveTx), InURLs, BaseAdr)
 }
+
+// Stats mocks base method.
+func (m *MockStorFunc) Stats() (models.URLStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Stats")
+	ret0, _ := ret[0].(models.URLStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Stats indicates an expected call of Stats.
+func (mr *MockStorFuncMockRecorder) Stats() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stats", reflect.TypeOf((*MockStorFunc)(nil).Stats))
+}

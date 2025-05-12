@@ -102,6 +102,11 @@ curl -v -X POST -H "Content-Type: application/json" --cookie "userID=<cookie>" -
 curl -v -X DELETE -H "Content-Type: application/json" --cookie "userID=<cookie>" -d '["6qxTVvsy", "RTfd56hn", "Jlfd67ds"]' http://localhost:8082/api/user/urls
 ```
 
+Показ статистики сервера для довереннйо подсети:
+```
+curl -v GET -H "Content-Type: text/plain" -H "X-Real-IP: 127.0.0.1" http://localhost:8080/api/internal/stats
+```
+
 Запуск основного серверева с соединение к БД, но без сохранений в файлах (для файлов добавить флаг `-f=./storage.csv`):
 ```
 DATABASE_DSN="host=localhost user=myuser password=123456 dbname=ShortURL sslmode=disable" ./shortener.exe -a :8082
